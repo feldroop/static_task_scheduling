@@ -23,7 +23,7 @@ cluster create_cluster(
 
     for (size_t i = 0; i < memories.size(); i++)
     {
-        cluster_node n{memories[i], num_cores[i], core_performances[i], bandwidths[i]};
+        cluster_node n{i, memories[i], num_cores[i], core_performances[i], bandwidths[i]};
         c.push_back(n);
     }
     

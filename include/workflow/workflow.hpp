@@ -23,7 +23,7 @@ workflow create_workflow(
     assert(computation_costs.size() == memory_requirements.size());
 
     for (size_t i = 0; i < computation_costs.size(); ++i) {
-        task const t = task{computation_costs[i], memory_requirements[i]};
+        task const t = task{i, computation_costs[i], memory_requirements[i]};
         size_t const id = w.add_vertex(t);
         ids.push_back(id);
     }
