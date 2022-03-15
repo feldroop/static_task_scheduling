@@ -4,10 +4,12 @@
 #include <ranges>
 #include <vector>
 
-#include <workflow/di_graph.hpp>
+#include <util/di_graph.hpp>
 #include <workflow/task.hpp>
 
-using workflow = di_graph<task, double>;
+namespace workflow {
+
+using workflow = util::di_graph<task, double>;
 
 // create a DAG workflow represetation based on the input specifications
 workflow create_workflow(
@@ -40,3 +42,5 @@ workflow create_workflow(
 
     return w;
 }
+
+} //namepsace workflow

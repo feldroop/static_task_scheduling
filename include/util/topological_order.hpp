@@ -3,7 +3,9 @@
 #include <cassert>
 #include <ranges>
 
-#include <workflow/di_graph.hpp>
+#include <util/di_graph.hpp>
+
+namespace util {
 
 template<typename V, typename E>
 std::vector<size_t> find_independent_vertices(di_graph<V, E> const & g) {
@@ -66,3 +68,5 @@ std::vector<size_t> compute_topological_order(di_graph<V, E> const & g) {
 
     return topological_order;
 }
+
+} //namespace util

@@ -5,6 +5,8 @@
 
 #include <cluster/cluster_node.hpp>
 
+namespace cluster {
+
 using cluster = std::vector<cluster_node>;
 
 cluster create_cluster(
@@ -29,3 +31,5 @@ cluster create_cluster(
     
     return c;
 }
+
+} // namespace cluster

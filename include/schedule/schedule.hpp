@@ -7,13 +7,15 @@
 #include <cluster/cluster.hpp>
 #include <schedule/node_schedule.hpp>
 
+namespace schedule {
+
 // cluster node id/index -> list of scheduled tasks
 using schedule = std::vector<node_schedule>;
 
-schedule create_empty_schedule(cluster const & c) {
+schedule create_empty_schedule(cluster::cluster const & c) {
     schedule s{};
 
-    for (cluster_node const & node : c) {
+    for (cluster::cluster_node const & node : c) {
         s.emplace_back(node);
     }
 
@@ -29,3 +31,7 @@ void print_schedule(schedule const & s) {
 
     std::cout << "[makespan: " << makespan << "]" << std::endl;
 }
+
+// TODO is_valid(workflow) -> make class, add task_intervals member
+
+} // namespace schedule

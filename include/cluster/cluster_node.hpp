@@ -2,6 +2,8 @@
 
 #include <cstddef>
 
+namespace cluster {
+
 struct cluster_node {
     size_t const id;
     size_t const memory;
@@ -9,3 +11,5 @@ struct cluster_node {
     double const core_performance;
     double const network_bandwidth;
 };
+
+} // namespace cluster

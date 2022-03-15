@@ -4,6 +4,8 @@
 #include <unordered_set>
 #include <vector>
 
+namespace util {
+
 // simple directed graph, no delete functionality
 // implemented using a hashmap based spare adjacency matrix
 
@@ -73,3 +75,5 @@ public:
         return outgoing_edges;
     }
 };
+
+} // namespace util

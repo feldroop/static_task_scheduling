@@ -7,7 +7,7 @@
 
 using namespace std;
 
-cluster create_example_cluster() {
+cluster::cluster create_example_cluster() {
     vector<size_t> memories{
         1, 1, 1
     };
@@ -24,10 +24,10 @@ cluster create_example_cluster() {
         1.0, 1.0, 1.0
     };
 
-    return create_cluster(memories, num_cores, core_performances, bandwidths);
+    return cluster::create_cluster(memories, num_cores, core_performances, bandwidths);
 }
 
-workflow create_example_workflow() {
+workflow::workflow create_example_workflow() {
     vector<double> computation_costs{
         100.0,
         50.0, 50.0, 50.0, 50.0,
@@ -60,16 +60,16 @@ workflow create_example_workflow() {
         5.0, 5.0, 5.0, 5.0
     };
 
-    return create_workflow(computation_costs, memory_requirements, from_ids, to_ids, weights);
+    return workflow::create_workflow(computation_costs, memory_requirements, from_ids, to_ids, weights);
 }
 
 int main(int argc, char const *argv[]) {
     // illustrative example
-    cluster const c = create_example_cluster();
-    workflow const w = create_example_workflow();
-    schedule const s = heft(c, w);
+    cluster::cluster const c = create_example_cluster();
+    workflow::workflow const w = create_example_workflow();
+    schedule::schedule const s = algorithms::heft(c, w);
 
-    print_schedule(s);
+    schedule::print_schedule(s);
 
     return 0;
 }
