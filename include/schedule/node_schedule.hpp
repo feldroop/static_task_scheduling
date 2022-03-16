@@ -1,14 +1,11 @@
 #pragma once
 
 #include <algorithm>
-#include <optional>
 #include <sstream>
-#include <tuple>
 #include <vector>
 
-#include <cluster/cluster_node.hpp>
 #include <schedule/time_interval.hpp>
-#include <workflow/task.hpp>
+#include <workflow.hpp>
 
 namespace schedule {
 
@@ -20,7 +17,7 @@ public:
     using iterator = std::vector<time_interval>::iterator;
 
     struct time_slot {
-        double const eft;
+        time_t const eft;
         iterator const it;
     };
 
@@ -29,19 +26,19 @@ public:
 
     // returns EFT and iterator before which the task could be scheduled
     time_slot compute_earliest_finish_time(
-        double const ready_time,
+        time_t const ready_time,
         workflow::task const & t
     ) {
-        auto ends_before = [] (time_interval const & interval, double const & time) {
+        auto ends_before = [] (time_interval const & interval, time_t const & time) {
             return interval.end < time;
         };
         auto curr_it = std::lower_bound(intervals.begin(), intervals.end(), ready_time, ends_before);
         
-        double const computation_time = get_computation_time(t);
+        time_t const computation_time = get_computation_time(t);
 
         if (curr_it == intervals.end()) {
             // no insertion possible -> schedule task to end after ready time
-            double const earliest_start_time = intervals.empty() ? ready_time : std::max(intervals.back().end, ready_time);
+            time_t const earliest_start_time = intervals.empty() ? ready_time : std::max(intervals.back().end, ready_time);
             return time_slot{earliest_start_time + computation_time, intervals.end()};
         }
 
@@ -72,11 +69,11 @@ public:
         return node;
     }
 
-    double get_computation_time(workflow::task const & t) const {
-        return t.compute_cost / (node.core_performance * node.num_cores);
+    time_t get_computation_time(workflow::task const & t) const {
+        return t.compute_cost / node.performance();
     }
 
-    double get_total_finish_time() const {
+    time_t get_total_finish_time() const {
         return intervals.empty() ? 0.0 : intervals.back().end;
     }
 

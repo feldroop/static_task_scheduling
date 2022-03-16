@@ -1,20 +1,22 @@
 #pragma once
 
+#include <optional>
+#include <ranges>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-namespace util {
-
 // simple directed graph, no delete functionality
-// implemented using a hashmap based spare adjacency matrix
+// implemented using a hashmap based sparse adjacency matrix
 
 // V: vertex type, E: edge "weight" type
 // E should be cheap to copy and store
 template <typename V, typename E>
 class di_graph {
 public:
-    using weight_matrix = std::vector<std::unordered_map<size_t, E>>;
+    using vertex_id = size_t;
+    using weight_matrix = std::vector<std::unordered_map<vertex_id, E>>;
+
 private:
     // vertex id == vector index
     std::vector<V> vertices{};
@@ -24,20 +26,20 @@ private:
     weight_matrix outgoing_edges{};
 
 public:
-    // returns id of newly created node
-    size_t add_vertex(V const value) {
-        size_t const id{vertices.size()};
+    // returns id of newly created vertex
+    vertex_id add_vertex(V const value) {
+        vertex_id const v_id{vertices.size()};
 
         vertices.emplace_back(std::move(value));
 
         incoming_edges.emplace_back();
         outgoing_edges.emplace_back();
 
-        return id;
+        return v_id;
     }
 
     // returns whether an edge was created
-    bool add_edge(size_t const from_id, size_t const to_id, E const weight) {
+    bool add_edge(vertex_id const from_id, vertex_id const to_id, E const weight) {
         if (from_id >= vertices.size() ||
               to_id >= vertices.size() ||
             incoming_edges[to_id].contains(from_id)) {
@@ -51,29 +53,76 @@ public:
         return true;
     }
 
-    V const & get_vertex(size_t const id) const {
-        return vertices.at(id);
+    V const & get_vertex(vertex_id const v_id) const {
+        return vertices.at(v_id);
     }
 
     std::vector<V> const & get_all_vertices() const {
         return vertices;
     }
 
-    std::unordered_map<size_t, E> const & get_incoming_edges(size_t const id) const {
-        return incoming_edges.at(id);
+    std::unordered_map<vertex_id, E> const & get_incoming_edges(vertex_id const v_id) const {
+        return incoming_edges.at(v_id);
     }
 
     weight_matrix const & get_all_incoming_edges() const {
         return incoming_edges;
     }
 
-    std::unordered_map<size_t, E> const & get_outgoing_edges(size_t const id) const {
-        return outgoing_edges.at(id);
+    std::unordered_map<vertex_id, E> const & get_outgoing_edges(vertex_id const v_id) const {
+        return outgoing_edges.at(v_id);
     }
 
     weight_matrix const & get_all_outgoing_edges() const {
         return outgoing_edges;
     }
-};
 
-} // namespace util
+    // returns vertices without incoming edges ("independent vertices")
+    std::vector<vertex_id> independent_vertices() const {
+        std::vector<vertex_id> independent_vertex_ids{};
+
+        for (vertex_id v_id = 0; v_id < vertices.size(); ++v_id) {
+            if (incoming_edges.at(v_id).empty()) {
+                independent_vertex_ids.push_back(v_id);
+            }
+        }
+
+        return independent_vertex_ids;
+    }
+
+    // returns a std::nullopt if the graph is cyclic
+    // running time: linear in the number of edges
+    std::optional<std::vector<vertex_id>> topological_order() const {
+        std::vector<vertex_id> topological_order{};
+        std::vector<vertex_id> independent_vertex_ids = independent_vertices();
+
+        // copy incoming edges to modify
+        auto temp_incoming_edges = incoming_edges;
+
+        // keep on finding "independent" vertices without incoming edges
+        // then extract them and delete their outgoing edges to make other vertices independent
+        while (!independent_vertex_ids.empty()) {
+            vertex_id const curr_vertex_id = independent_vertex_ids.back();
+            independent_vertex_ids.pop_back();
+            topological_order.push_back(curr_vertex_id);
+
+            for (auto const & [neighbor_id, weight] : outgoing_edges.at(curr_vertex_id))
+            {
+                size_t const num_erased = temp_incoming_edges.at(neighbor_id).erase(curr_vertex_id);
+                if (num_erased != 1) {
+                    return std::nullopt;
+                }
+
+                if (temp_incoming_edges.at(neighbor_id).empty()) {
+                    independent_vertex_ids.push_back(neighbor_id);
+                }
+            }
+        }
+
+        if (topological_order.size() != vertices.size()) {
+            return std::nullopt;
+        }
+
+        return topological_order;
+    }
+};

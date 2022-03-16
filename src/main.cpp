@@ -1,74 +1,78 @@
+#include <iostream>
 #include <vector>
 
 #include <algorithms/heft.hpp>
-#include <cluster/cluster.hpp>
+#include <cluster.hpp>
 #include <schedule/schedule.hpp>
-#include <workflow/workflow.hpp>
+#include <workflow.hpp>
 
-using namespace std;
-
-cluster::cluster create_example_cluster() {
-    vector<size_t> memories{
+cluster create_example_cluster() {
+    std::vector<size_t> memories{
         1, 1, 1
     };
 
-    vector<size_t> num_cores{
+    std::vector<size_t> num_cores{
         1, 1, 1
     };
     
-    vector<double> core_performances{
+    std::vector<double> core_performances{
         1.0, 0.5, 2.0
     };
 
-    vector<double> bandwidths{
+    std::vector<double> bandwidths{
         1.0, 1.0, 1.0
     };
 
-    return cluster::create_cluster(memories, num_cores, core_performances, bandwidths);
+    return cluster(memories, num_cores, core_performances, bandwidths);
 }
 
-workflow::workflow create_example_workflow() {
-    vector<double> computation_costs{
+workflow create_example_workflow() {
+    std::vector<double> computation_costs{
         100.0,
         50.0, 50.0, 50.0, 50.0,
         40.0, 40.0, 40.0, 40.0,
         80.0
     };
 
-    vector<size_t> memory_requirements{
+    std::vector<size_t> memory_requirements{
         0,
         0, 0, 0, 0,
         0, 0, 0, 0,
         0
     };
 
-    vector<size_t> from_ids{
+    std::vector<workflow::task_id> from_ids{
         0, 0, 0, 0,
         1, 2, 3, 4,
         5, 6, 7, 8
     };
 
-    vector<size_t> to_ids{
+    std::vector<workflow::task_id> to_ids{
         1, 2, 3, 4,
         5, 6, 7, 8,
         9, 9, 9, 9
     };
 
-    vector<double> weights{
+    std::vector<double> weights{
         2.0, 2.0, 2.0, 2.0,
         4.0, 4.0, 4.0, 4.0,
         5.0, 5.0, 5.0, 5.0
     };
 
-    return workflow::create_workflow(computation_costs, memory_requirements, from_ids, to_ids, weights);
+    return workflow(computation_costs, memory_requirements, from_ids, to_ids, weights);
 }
 
-int main(int argc, char const *argv[]) {
+int main() {
     // illustrative example
-    cluster::cluster const c = create_example_cluster();
-    workflow::workflow const w = create_example_workflow();
+    cluster const c = create_example_cluster();
+    workflow const w = create_example_workflow();
 
     schedule::schedule const s = algorithms::heft(c, w);
+
+    std::cout << "[sequential makespan " 
+              << w.get_sequential_makespan(c.best_node_performance())
+              << "]\n";
+
     s.print();
 
     return 0;
