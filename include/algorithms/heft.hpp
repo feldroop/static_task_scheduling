@@ -80,12 +80,12 @@ std::vector<size_t> sort_task_ids_by_rank(std::unordered_map<size_t, double> con
 
 double compute_ready_time(
     std::unordered_map<size_t, double> const & incoming_edges,
-    std::unordered_map<size_t, schedule::time_interval> const & task_intervals
+    schedule::schedule const & s
 ) {
     auto data_available_times = incoming_edges
-        | std::views::transform([&task_intervals] (auto const & edge) {
+        | std::views::transform([&s] (auto const & edge) {
             auto const & [neighbor_id, weight] = edge;
-            return task_intervals.at(neighbor_id).end + weight;
+            return s.get_task_interval(neighbor_id).end + weight;
         }             
     );
 
@@ -95,7 +95,6 @@ double compute_ready_time(
 
 void insert_into_best_eft_node_schedule(
     schedule::schedule & s,
-    std::unordered_map<size_t, schedule::time_interval> & task_intervals,
     workflow::task const & t,
     double const ready_time
 ) {
@@ -120,13 +119,29 @@ void insert_into_best_eft_node_schedule(
     assert(best_eft_it != earliest_finish_times.end());
     auto const [slot, node_id] = *best_eft_it;
 
-    schedule::node_schedule & best_node = s[node_id];
+    schedule::node_schedule & best_node = s.at(node_id);
     double const start = slot.eft - best_node.get_computation_time(t);
     schedule::time_interval best_interval{start, slot.eft, t.id};
 
-    task_intervals[t.id] = best_interval;
-    s[node_id].insert(slot.it, best_interval);
+    s.add_task_interval(t.id, best_interval);
+    s.at(node_id).insert(slot.it, best_interval);
 }
+
+// Running time analysis:
+// input: cluster C, workflow-DAG W = (V,E)
+//
+// compute_mean_performance: mean of all cluster nodes -> O(|C|)
+// compute_all_upward_ranks: visit all edges in topological order -> O(|E|)
+// sort_task_ids_by_rank: sort list of size |V| -> O(|V| * log(|V|))
+// compute_ready_time: visit all incoming edges once -> in total O(|E|) 
+// |V| times insert_into_best_eft_node_schedule:
+//    |C| times compute_earliest_finish_time:
+//        up to |V| if all tasks are scheduled to the beginning (in practice rather O(log(|V|))
+//    once insert into node_schedule: up to |V|, but in practice rather O(1)
+//
+// in total: O(|V|^2 * |C|) worst case, however in practice usually O(|V| * log(|V|) * |C|) or O(|E|)
+// this implementation is in some cases asymptotically slower than the suggested running time
+// in the original paper which is O(|E| * |C|)
 
 schedule::schedule heft(cluster::cluster const & c, workflow::workflow const & w) {
     // instead of computing average compute cost for every task,
@@ -137,13 +152,12 @@ schedule::schedule heft(cluster::cluster const & c, workflow::workflow const & w
 
     std::vector<size_t> const priority_list = sort_task_ids_by_rank(upward_ranks);
 
-    schedule::schedule s = schedule::create_empty_schedule(c);
-    std::unordered_map<size_t, schedule::time_interval> task_intervals{};
+    schedule::schedule s(c);
 
     for (size_t const task_id : priority_list) {
-        double const ready_time = compute_ready_time(w.get_incoming_edges(task_id), task_intervals);
+        double const ready_time = compute_ready_time(w.get_incoming_edges(task_id), s);
 
-        insert_into_best_eft_node_schedule(s, task_intervals, w.get_vertex(task_id), ready_time);
+        insert_into_best_eft_node_schedule(s, w.get_vertex(task_id), ready_time);
     }
     
     return s;

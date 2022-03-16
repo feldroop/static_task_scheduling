@@ -64,10 +64,7 @@ public:
         }
     }
 
-    void insert(
-        iterator const & it,
-        time_interval const interval
-    ) {
+    void insert(iterator const & it, time_interval const interval) {
         intervals.emplace(it, std::move(interval));
     }
 

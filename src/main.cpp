@@ -67,9 +67,9 @@ int main(int argc, char const *argv[]) {
     // illustrative example
     cluster::cluster const c = create_example_cluster();
     workflow::workflow const w = create_example_workflow();
-    schedule::schedule const s = algorithms::heft(c, w);
 
-    schedule::print_schedule(s);
+    schedule::schedule const s = algorithms::heft(c, w);
+    s.print();
 
     return 0;
 }
