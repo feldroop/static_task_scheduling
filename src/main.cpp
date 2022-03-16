@@ -75,5 +75,7 @@ int main() {
 
     s.print();
 
+    std::cout << "[schedule " << (s.is_valid(w) ? "is " : "not ") << "valid]\n";
+
     return 0;
 }

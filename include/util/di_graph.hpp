@@ -16,6 +16,7 @@ class di_graph {
 public:
     using vertex_id = size_t;
     using weight_matrix = std::vector<std::unordered_map<vertex_id, E>>;
+    using vertex_iterator = std::vector<V>::const_iterator;
 
 private:
     // vertex id == vector index

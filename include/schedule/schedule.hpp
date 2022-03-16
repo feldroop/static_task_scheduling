@@ -88,7 +88,13 @@ public:
     }
 
     bool is_valid(workflow const & w) const {
-        // TODO
+        for (workflow::task const & t : w) {
+            for (auto const & [neighbor_id, weight] : w.get_task_incoming_edges(t.id)) {
+                if (task_intervals.at(neighbor_id).end + weight > task_intervals.at(t.id).start) {
+                    return false;
+                }; 
+            }
+        }
         return true;
     }
 

@@ -45,8 +45,7 @@ public:
             throw std::invalid_argument("Cluster cannot be empty.");
         }
 
-        for (size_t i = 0; i < memories.size(); i++)
-        {
+        for (size_t i = 0; i < memories.size(); i++) {
             cluster_node n{i, memories[i], num_cores[i], core_performances[i], bandwidths[i]};
             nodes.push_back(n);
         }

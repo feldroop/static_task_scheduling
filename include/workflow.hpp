@@ -12,7 +12,6 @@
 class workflow {
 public:
     using task_id = size_t;
-
     struct task {
         task_id const id;
         double const compute_cost;
@@ -22,6 +21,8 @@ public:
     enum class task_order {
         upward_rank
     };
+
+    using iterator = di_graph<task, double>::vertex_iterator;
 
 private:
     di_graph<task, double> g;
@@ -117,6 +118,14 @@ public:
         return g.get_vertex(t_id);
     }
 
+    iterator begin() const {
+        return g.get_all_vertices().begin();
+    }
+
+    iterator end() const {
+        return g.get_all_vertices().end();
+    }
+
 private:
     std::unordered_map<task_id, double> compute_all_upward_ranks(
         double const mean_cluster_performance
@@ -124,8 +133,7 @@ private:
         std::unordered_map<task_id, double> upward_ranks{};
         
         auto topological_order = g.topological_order().value();
-        for (task_id const t_id : std::views::reverse(topological_order))
-        {
+        for (task_id const t_id : std::views::reverse(topological_order)) {
             upward_ranks.insert({t_id, compute_upward_rank(upward_ranks, mean_cluster_performance, t_id)});
         }
 
