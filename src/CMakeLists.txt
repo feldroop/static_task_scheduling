@@ -1,1 +1,1 @@
-add_executable(main main.cpp)
+add_executable(static_task_scheduling static_task_scheduling.cpp)

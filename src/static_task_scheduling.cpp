@@ -3,7 +3,7 @@
 
 #include <algorithms/heft.hpp>
 #include <cluster.hpp>
-#include <io/command_line_interface.hpp>
+#include <io/parse_command_line.hpp>
 #include <schedule/schedule.hpp>
 #include <workflow.hpp>
 
@@ -81,8 +81,12 @@ workflow create_example_workflow() {
     );
 }
 
-int main() {
-    command_line_interface cli{};
+int main(int argc, char *argv[]) {
+    auto const args = parse_command_line(argc, argv);
+
+    if (!args) {
+        return -1;
+    }
 
     // illustrative example
     cluster const c = create_example_cluster();
