@@ -18,10 +18,6 @@ public:
         size_t const memory_requirement;
     };
 
-    enum class task_order {
-        upward_rank
-    };
-
     using iterator = di_graph<task, double>::vertex_iterator;
 
 private:
@@ -29,23 +25,24 @@ private:
 
 public:
     // create a DAG workflow represetation based on the input specifications
+    // it is assumed that the ids in from_ids and to_ids refer to the indices of the other arguments
     workflow(
         std::vector<double> const & computation_costs,
         std::vector<size_t> const & memory_requirements,
-        std::vector<size_t> const & from_ids,
-        std::vector<size_t> const & to_ids,
-        std::vector<double> const & weights
+        std::vector<double> const & input_data_sizes,
+        std::vector<double> const & output_data_sizes,
+        std::vector<task_id> const & from_ids,
+        std::vector<task_id> const & to_ids
     ) {
-        if (computation_costs.size() != memory_requirements.size()) {
-            throw std::invalid_argument("Arguments for task parameters must have the same size.");
-        } else if (
-            from_ids.size() != to_ids.size() ||
-            to_ids.size() != weights.size()
+        if (
+            computation_costs.size() != memory_requirements.size() ||
+            computation_costs.size() != input_data_sizes.size() || 
+            computation_costs.size() != output_data_sizes.size()
         ) {
+            throw std::invalid_argument("Arguments for task parameters must have the same size.");
+        } else if (from_ids.size() != to_ids.size()) {
             throw std::invalid_argument("Arguments for data exchange parameters must have the same size.");
         }
-
-        std::vector<task_id> ids{};
 
         for (size_t i = 0; i < computation_costs.size(); ++i) {
             if (computation_costs[i] == 0) {
@@ -53,15 +50,18 @@ public:
             }
 
             task const t = task{i, computation_costs[i], memory_requirements[i]};
-            task_id const id = g.add_vertex(t);
-            ids.push_back(id);
+            g.add_vertex(t);
         }
 
         for (size_t i = 0; i < from_ids.size(); ++i) {
+            if (output_data_sizes.at(from_ids.at(i)) != input_data_sizes.at(to_ids.at(i))) {
+                throw std::invalid_argument("Input/Output data sizes for an edge don't match.");
+            }
+
             bool const was_created = g.add_edge(
-                ids.at(from_ids.at(i)), 
-                ids.at(to_ids.at(i)), 
-                ids.at(weights.at(i))
+                from_ids.at(i), 
+                to_ids.at(i), 
+                output_data_sizes.at(from_ids.at(i))
             );
 
             if (!was_created) {
@@ -70,26 +70,24 @@ public:
         }
     }
 
-    std::vector<task_id> task_ids_sorted_by(
-        task_order const order,
-        double const mean_cluster_performance
+    std::unordered_map<task_id, double> all_upward_ranks(
+        double const mean_cluster_performance,
+        double const mean_cluster_bandwidth
     ) const {
-        std::vector<task_id> priority_list(g.get_all_vertices().size());
-        std::iota(priority_list.begin(), priority_list.end(), 0);
-
-        std::unordered_map<task_id, double> ranks;
-        switch (order) {
-            case task_order::upward_rank : ranks = compute_all_upward_ranks(mean_cluster_performance);
-            break;
+        std::unordered_map<task_id, double> upward_ranks{};
+        
+        auto topological_order = g.topological_order().value();
+        for (task_id const t_id : std::views::reverse(topological_order)) {
+            double const upward_rank = compute_upward_rank(
+                upward_ranks, 
+                mean_cluster_performance, 
+                mean_cluster_bandwidth, 
+                t_id
+            );
+            upward_ranks.insert({t_id, upward_rank});
         }
 
-        std::ranges::sort(priority_list, 
-            [&ranks] (workflow::task_id const & t_id0, workflow::task_id const & t_id1) {
-                return ranks.at(t_id0) > ranks.at(t_id1);
-            }
-        );
-
-        return priority_list;
+        return upward_ranks;
     }
 
     schedule::time_t get_sequential_makespan(double const best_cluster_node_performance) const {
@@ -126,31 +124,24 @@ public:
         return g.get_all_vertices().end();
     }
 
-private:
-    std::unordered_map<task_id, double> compute_all_upward_ranks(
-        double const mean_cluster_performance
-    ) const {
-        std::unordered_map<task_id, double> upward_ranks{};
-        
-        auto topological_order = g.topological_order().value();
-        for (task_id const t_id : std::views::reverse(topological_order)) {
-            upward_ranks.insert({t_id, compute_upward_rank(upward_ranks, mean_cluster_performance, t_id)});
-        }
-
-        return upward_ranks;
+    // number of tasks in the workflow
+    size_t size() const {
+        return g.get_all_vertices().size();
     }
 
+private:
     double compute_upward_rank(
         std::unordered_map<task_id, double> const & upward_ranks,
         double const mean_cluster_performance,
+        double const mean_cluster_bandwidth,
         task_id const t_id
     ) const {
         double upward_rank = g.get_vertex(t_id).compute_cost * mean_cluster_performance;
 
         auto outgoing_ranks = g.get_outgoing_edges(t_id) 
-            | std::views::transform([&upward_ranks] (auto const & edge) {
-                auto const & [neighbor_id, weight] = edge;
-                return weight + upward_ranks.at(neighbor_id);
+            | std::views::transform([&upward_ranks, mean_cluster_bandwidth] (auto const & edge) {
+                auto const & [neighbor_id, data_transfer] = edge;
+                return data_transfer / mean_cluster_bandwidth + upward_ranks.at(neighbor_id);
             }
         );
 

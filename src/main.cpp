@@ -8,7 +8,7 @@
 
 cluster create_example_cluster() {
     std::vector<size_t> memories{
-        1, 1, 1
+        50, 100, 200
     };
 
     std::vector<size_t> num_cores{
@@ -16,31 +16,48 @@ cluster create_example_cluster() {
     };
     
     std::vector<double> core_performances{
-        1.0, 0.5, 2.0
+        10.0, 5.0, 20.0
     };
 
     std::vector<double> bandwidths{
-        1.0, 1.0, 1.0
+        5.0, 5.0, 5.0
     };
 
     return cluster(memories, num_cores, core_performances, bandwidths);
 }
 
 workflow create_example_workflow() {
+    // tasks
     std::vector<double> computation_costs{
-        100.0,
-        50.0, 50.0, 50.0, 50.0,
-        40.0, 40.0, 40.0, 40.0,
-        80.0
+        1000.0,
+        500.0, 500.0, 500.0, 500.0,
+        400.0, 400.0, 400.0, 400.0,
+        800.0
     };
 
     std::vector<size_t> memory_requirements{
-        0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0
+        1,
+        1, 1, 1, 1,
+        1, 1, 1, 1,
+        1
     };
 
+    // discreptancy with Somayeh's input data?
+    std::vector<double> input_data_sizes{
+        0.0,
+        10.0, 10.0, 10.0, 10.0,
+        20.0, 20.0, 20.0, 20.0,
+        25.0
+    };
+
+    std::vector<double> output_data_sizes{
+        10.0,
+        20.0, 20.0, 20.0, 20.0,
+        25.0, 25.0, 25.0, 25.0,
+        0.0
+    };
+
+    // edge dependencies
     std::vector<workflow::task_id> from_ids{
         0, 0, 0, 0,
         1, 2, 3, 4,
@@ -53,13 +70,14 @@ workflow create_example_workflow() {
         9, 9, 9, 9
     };
 
-    std::vector<double> weights{
-        2.0, 2.0, 2.0, 2.0,
-        4.0, 4.0, 4.0, 4.0,
-        5.0, 5.0, 5.0, 5.0
-    };
-
-    return workflow(computation_costs, memory_requirements, from_ids, to_ids, weights);
+    return workflow(
+        computation_costs, 
+        memory_requirements, 
+        input_data_sizes,
+        output_data_sizes,
+        from_ids, 
+        to_ids
+    );
 }
 
 int main() {
@@ -69,7 +87,7 @@ int main() {
 
     schedule::schedule const s = algorithms::heft(c, w);
 
-    std::cout << "[sequential makespan " 
+    std::cout << "[sequential makespan: " 
               << w.get_sequential_makespan(c.best_node_performance())
               << "]\n";
 

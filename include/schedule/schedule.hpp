@@ -15,13 +15,13 @@ namespace schedule {
 
 class schedule {
     // cluster node id/index -> list of scheduled tasks
-    std::vector<node_schedule> nodes{};
+    std::vector<node_schedule> node_schedules{};
     std::unordered_map<size_t, time_interval> task_intervals{};
 
 public:
     schedule(cluster const & c) {
         for (cluster::cluster_node const & node : c) {
-            nodes.emplace_back(node);
+            node_schedules.emplace_back(node);
         }
     }
 
@@ -30,14 +30,14 @@ public:
         workflow const & w
     ) {
         workflow::task const & t = w.get_task(t_id);
-        time_t const ready_time = task_ready_time(t_id, w);
 
-        auto earliest_finish_times = nodes
+        auto earliest_finish_times = node_schedules
             | std::views::filter([&t] (node_schedule const & node_s) {
                 return node_s.get_node().memory >= t.memory_requirement;
             })
-            | std::views::transform([&t, ready_time] (node_schedule & node_s) {
+            | std::views::transform([this, &w, &t] (node_schedule & node_s) {
                 cluster::node_id const node_id = node_s.get_node().id;
+                double const ready_time = task_ready_time(t.id, w, node_id);
                 return std::make_tuple(node_s.compute_earliest_finish_time(ready_time, t), node_id);
             }
         );
@@ -58,29 +58,29 @@ public:
 
         auto const [slot, node_id] = *best_eft_it;
 
-        node_schedule & best_node_s = nodes.at(node_id);
+        node_schedule & best_node_s = node_schedules.at(node_id);
         time_t const start = slot.eft - best_node_s.get_computation_time(t);
-        time_interval best_interval{start, slot.eft, t.id};
+        time_interval best_interval{start, slot.eft, t.id, node_id};
 
         task_intervals.insert({t.id, best_interval});
-        nodes.at(node_id).insert(slot.it, best_interval);
+        node_schedules.at(node_id).insert(slot.it, best_interval);
     }
 
     time_t get_makespan() const {
         auto it = std::max_element(
-            nodes.cbegin(), 
-            nodes.cend(), 
+            node_schedules.begin(), 
+            node_schedules.end(), 
             [] (auto const & node_s0, auto const & node_s1)
             {
                 return node_s0.get_total_finish_time() < node_s1.get_total_finish_time();
             }
         );
 
-        return it == nodes.end() ? 0.0 : it->get_total_finish_time();
+        return it == node_schedules.end() ? 0.0 : it->get_total_finish_time();
     }
 
     void print() const {
-        for (node_schedule const & node_s : nodes) {
+        for (node_schedule const & node_s : node_schedules) {
             std::cout << node_s.to_string() << '\n';
         }
 
@@ -89,8 +89,17 @@ public:
 
     bool is_valid(workflow const & w) const {
         for (workflow::task const & t : w) {
-            for (auto const & [neighbor_id, weight] : w.get_task_incoming_edges(t.id)) {
-                if (task_intervals.at(neighbor_id).end + weight > task_intervals.at(t.id).start) {
+            for (auto const & [neighbor_id, data_transfer] : w.get_task_incoming_edges(t.id)) {
+                time_interval const & curr_t_interval = task_intervals.at(t.id);
+                time_interval const & neighbor_interval = task_intervals.at(neighbor_id);
+
+                double const data_transfer_cost = get_data_transfer_cost(
+                    curr_t_interval.node_id, 
+                    neighbor_interval.node_id, 
+                    data_transfer
+                );
+
+                if (neighbor_interval.end + data_transfer_cost > curr_t_interval.start) {
                     return false;
                 }; 
             }
@@ -101,17 +110,43 @@ public:
 private:
     time_t task_ready_time(
         workflow::task_id const t_id,
-        workflow const & w
+        workflow const & w,
+        cluster::node_id const target_node_id
     ) const {
         auto data_available_times = w.get_task_incoming_edges(t_id)
-            | std::views::transform([this] (auto const & edge) {
-                auto const & [neighbor_id, weight] = edge;
-                return task_intervals.at(neighbor_id).end + weight;
+            | std::views::transform([this, target_node_id] (auto const & edge) {
+                auto const & [neighbor_task_id, data_transfer] = edge;
+
+                time_interval const & neighbor_interval = task_intervals.at(neighbor_task_id);
+
+                return neighbor_interval.end + get_data_transfer_cost(
+                    neighbor_interval.node_id, 
+                    target_node_id,
+                    data_transfer
+                );
             }             
         );
 
         auto latest_it = std::max_element(data_available_times.begin(), data_available_times.end());
         return latest_it != data_available_times.end() ? *latest_it : 0.0;
+    }
+
+    time_t get_data_transfer_cost(
+        cluster::node_id const node_id0,
+        cluster::node_id const node_id1,
+        double const data_transfer
+    ) const {
+        // if the two tasks are scheduled to the same node, there is no cost for the data transfer
+        if (node_id0 == node_id1) {
+            return 0.0;
+        }
+
+        double const node_bandwidth0 = node_schedules.at(node_id0).get_node().network_bandwidth;
+        double const node_bandwidth1 = node_schedules.at(node_id1).get_node().network_bandwidth;
+
+        double const common_bandwidth = std::min(node_bandwidth0, node_bandwidth1);
+
+        return data_transfer / common_bandwidth;
     }
 };
 

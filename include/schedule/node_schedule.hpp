@@ -62,7 +62,7 @@ public:
     }
 
     void insert(iterator const & it, time_interval const interval) {
-        intervals.emplace(it, std::move(interval));
+        intervals.emplace(it, interval);
     }
 
     cluster::cluster_node const & get_node() const {
