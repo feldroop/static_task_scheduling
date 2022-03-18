@@ -14,4 +14,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE INTERNAL "Force C++20")
 include_directories(include)
 include_directories(lib)
 
-add_subdirectory(src)
+add_executable(static_task_scheduling src/static_task_scheduling.cpp)
