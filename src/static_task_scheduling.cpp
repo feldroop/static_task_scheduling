@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     auto const cluster_nodes = io::read_cluster_csv(args.cluster_input);
     cluster const c(std::move(cluster_nodes));
-    c.print();
+    std::cout << c.to_string();
 
     auto const task_bags = io::read_task_bag_csv(args.task_bag_input);
     auto const [tasks, input_data_sizes, output_data_sizes] = expand_task_bags(task_bags);
@@ -31,8 +31,7 @@ int main(int argc, char *argv[]) {
     std::cout << w.to_string(c.best_node_performance());
 
     schedule::schedule const s = algorithms::heft(c, w);
-
-    s.print("HEFT", s.is_valid(w));
+    std::cout << s.to_string("HEFT", s.is_valid(w));
 
     return 0;
 }

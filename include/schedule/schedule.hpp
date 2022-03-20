@@ -1,8 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include <iostream>
 #include <optional>
+#include <sstream>
 #include <ranges>
 #include <tuple>
 #include <vector>
@@ -85,17 +85,21 @@ public:
         return it == node_schedules.end() ? 0.0 : it->get_total_finish_time();
     }
 
-    void print(std::string const & algo, std::optional<bool> const is_valid = std::nullopt) const {
-        std::cout << "########## " << algo << " Schedule: ##########\n";
+    std::string to_string(std::string const & algo, std::optional<bool> const is_valid = std::nullopt) const {
+        std::stringstream out;
+        
+        out << "########## " << algo << " Schedule: ##########\n";
         for (node_schedule const & node_s : node_schedules) {
-            std::cout << node_s.to_string() << '\n';
+            out << node_s.to_string() << '\n';
         }
 
-        std::cout << "makespan: " << get_makespan() << '\n';
+        out << "makespan: " << get_makespan() << '\n';
 
         if (is_valid.has_value()) {
-            std::cout << "schedule " << (is_valid.value() ? "is " : "not ") << "valid\n";
+            out << "schedule " << (is_valid.value() ? "is " : "not ") << "valid\n";
         }
+
+        return out.str();
     }
 
     bool is_valid(workflow::workflow const & w) const {

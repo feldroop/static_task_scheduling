@@ -86,12 +86,16 @@ public:
         return performance_sum / size();
     }
 
-    void print() const {
-        std::cout << "########## Cluster: ##########\n";
+    std::string to_string() const {
+        std::stringstream out;
+
+        out << "########## Cluster: ##########\n";
         for(cluster_node const & node : nodes) {
-            std::cout << node.to_string() << '\n';
+            out << node.to_string() << '\n';
         }
-        std::cout << '\n';
+        out << '\n';
+
+        return out.str();
     }
 
     size_t size() const {
