@@ -31,23 +31,28 @@ public:
     ) {
         workflow::task const & t = w.get_task(t_id);
 
+        auto has_enough_memory = [&t] (node_schedule const & node_s) {
+            return node_s.get_node().memory >= t.memory_requirement;
+        };
+
+        auto earliest_finish_time_of_node = [this, &w, &t] (node_schedule & node_s) {
+            cluster::node_id const node_id = node_s.get_node().id;
+            double const ready_time = task_ready_time(t.id, w, node_id);
+            return std::make_tuple(node_s.compute_earliest_finish_time(ready_time, t), node_id);
+        };
+
         auto earliest_finish_times = node_schedules
-            | std::views::filter([&t] (node_schedule const & node_s) {
-                return node_s.get_node().memory >= t.memory_requirement;
-            })
-            | std::views::transform([this, &w, &t] (node_schedule & node_s) {
-                cluster::node_id const node_id = node_s.get_node().id;
-                double const ready_time = task_ready_time(t.id, w, node_id);
-                return std::make_tuple(node_s.compute_earliest_finish_time(ready_time, t), node_id);
-            }
-        );
+            | std::views::filter(has_enough_memory)
+            | std::views::transform(earliest_finish_time_of_node);
+
+        auto earlier_finish_time = [] (auto const & tup0, auto const & tup1) {
+            return std::get<0>(tup0).eft < std::get<0>(tup1).eft;
+        };
 
         auto best_eft_it = std::min_element(
             earliest_finish_times.begin(), 
             earliest_finish_times.end(),
-            [] (auto const & tup0, auto const & tup1) {
-                return std::get<0>(tup0).eft < std::get<0>(tup1).eft;
-            }
+            earlier_finish_time
         );
 
         if (best_eft_it == earliest_finish_times.end()) {
