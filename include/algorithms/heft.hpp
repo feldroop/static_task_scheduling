@@ -2,9 +2,9 @@
 
 #include <vector>
 
-#include <cluster.hpp>
+#include <cluster/cluster.hpp>
 #include <schedule/schedule.hpp>
-#include <workflow.hpp>
+#include <workflow/workflow.hpp>
 
 namespace algorithms {
 
@@ -31,7 +31,7 @@ std::vector<workflow::task_id> task_ids_sorted_by_upward_ranks(
 
 schedule::schedule heft(
     cluster const & c, 
-    workflow const & w
+    workflow::workflow const & w
 ) {
     auto const upward_ranks = w.all_upward_ranks(
         c.mean_node_performance(),

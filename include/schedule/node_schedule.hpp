@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <schedule/time_interval.hpp>
-#include <workflow.hpp>
+#include <workflow/workflow.hpp>
 
 namespace schedule {
 
@@ -70,7 +70,7 @@ public:
     }
 
     time_t get_computation_time(workflow::task const & t) const {
-        return t.compute_cost / node.performance();
+        return t.workload / node.performance();
     }
 
     time_t get_total_finish_time() const {
@@ -78,9 +78,9 @@ public:
     }
 
     std::string to_string() const {
-        std::stringstream out{};
+        std::stringstream out;
 
-        out << "[Node " << node.id << "]";
+        out << "Node " << node.id << ':';
         for (time_interval const & interval : intervals) {
             out << " (" << interval.task_id << ": " << interval.start
                 << " -> " << interval.end << ")";  

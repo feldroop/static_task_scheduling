@@ -2,22 +2,21 @@
 
 #include <algorithm>
 #include <functional>
+#include <optional>
 #include <ranges>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
 #include <schedule/time_interval.hpp>
 #include <util/di_graph.hpp>
+#include <workflow/dependency.hpp>
+#include <workflow/task.hpp>
+
+namespace workflow {
 
 class workflow {
 public:
-    using task_id = size_t;
-    struct task {
-        task_id const id;
-        double const compute_cost;
-        size_t const memory_requirement;
-    };
-
     using iterator = di_graph<task, double>::vertex_iterator;
 
 private:
@@ -27,45 +26,39 @@ public:
     // create a DAG workflow represetation based on the input specifications
     // it is assumed that the ids in from_ids and to_ids refer to the indices of the other arguments
     workflow(
-        std::vector<double> const & computation_costs,
-        std::vector<size_t> const & memory_requirements,
-        std::vector<double> const & input_data_sizes,
-        std::vector<double> const & output_data_sizes,
-        std::vector<task_id> const & from_ids,
-        std::vector<task_id> const & to_ids
+        std::vector<task> tasks,
+        std::vector<double> input_data_sizes,
+        std::vector<double> output_data_sizes,
+        std::vector<dependency> dependencies
     ) {
         if (
-            computation_costs.size() != memory_requirements.size() ||
-            computation_costs.size() != input_data_sizes.size() || 
-            computation_costs.size() != output_data_sizes.size()
+            tasks.size() != input_data_sizes.size()
+            || tasks.size() != output_data_sizes.size()
         ) {
             throw std::invalid_argument("Arguments for task parameters must have the same size.");
-        } else if (from_ids.size() != to_ids.size()) {
-            throw std::invalid_argument("Arguments for data exchange parameters must have the same size.");
         }
 
-        for (size_t i = 0; i < computation_costs.size(); ++i) {
-            if (computation_costs[i] == 0) {
-                throw std::invalid_argument("All tasks need a computation cost of > 0");
+        for (task const & t : tasks) {
+            if (t.workload == 0) {
+                throw std::invalid_argument("All tasks need a workload > 0");
             }
 
-            task const t = task{i, computation_costs[i], memory_requirements[i]};
             g.add_vertex(t);
         }
 
-        for (size_t i = 0; i < from_ids.size(); ++i) {
-            if (output_data_sizes.at(from_ids.at(i)) != input_data_sizes.at(to_ids.at(i))) {
-                throw std::invalid_argument("Input/Output data sizes for an edge don't match.");
+        for (dependency const & dep : dependencies) {
+            if (output_data_sizes.at(dep.from_id) != input_data_sizes.at(dep.to_id)) {
+                throw std::invalid_argument("Input/Output data sizes for a dependency don't match.");
             }
 
             bool const was_created = g.add_edge(
-                from_ids.at(i), 
-                to_ids.at(i), 
-                output_data_sizes.at(from_ids.at(i))
+                dep.from_id, 
+                dep.to_id, 
+                output_data_sizes.at(dep.from_id)
             );
 
             if (!was_created) {
-                throw std::invalid_argument("Task ids for data transfer endpoints are invalid.");
+                throw std::invalid_argument("Task ids for dependency endpoints are invalid.");
             }
         }
     }
@@ -99,9 +92,27 @@ public:
             0.0,
             std::plus<>(),
             [best_cluster_node_performance] (auto const & t) {
-                return t.compute_cost / best_cluster_node_performance;
+                return t.workload / best_cluster_node_performance;
             }
         );
+    }
+
+    std::string to_string(std::optional<double> best_performance_opt = std::nullopt) const {
+        std::stringstream out;
+
+        out << "########## Workflow: ##########\n";
+
+        out << "TODO\n";
+
+        if (best_performance_opt) {
+            out << "sequential makespan: " 
+                << get_sequential_makespan(best_performance_opt.value())
+                << "\n";
+        }
+
+        out << '\n';
+
+        return out.str();
     }
 
     std::unordered_map<task_id, double> const & get_task_incoming_edges(task_id const t_id) const {
@@ -136,7 +147,7 @@ private:
         double const mean_cluster_bandwidth,
         task_id const t_id
     ) const {
-        double upward_rank = g.get_vertex(t_id).compute_cost * mean_cluster_performance;
+        double upward_rank = g.get_vertex(t_id).workload * mean_cluster_performance;
 
         auto outgoing_ranks = g.get_outgoing_edges(t_id) 
             | std::views::transform([&upward_ranks, mean_cluster_bandwidth] (auto const & edge) {
@@ -153,3 +164,5 @@ private:
         return upward_rank;
     }
 };
+
+} // namespace workflow

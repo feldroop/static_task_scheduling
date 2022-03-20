@@ -2,14 +2,15 @@
 
 #include <algorithm>
 #include <iostream>
+#include <optional>
 #include <ranges>
 #include <tuple>
 #include <vector>
 
-#include <cluster.hpp>
+#include <cluster/cluster.hpp>
 #include <schedule/node_schedule.hpp>
 #include <schedule/time_interval.hpp>
-#include <workflow.hpp>
+#include <workflow/workflow.hpp>
 
 namespace schedule {
 
@@ -27,7 +28,7 @@ public:
 
     void insert_into_best_eft_node_schedule(
         workflow::task_id const t_id,
-        workflow const & w
+        workflow::workflow const & w
     ) {
         workflow::task const & t = w.get_task(t_id);
 
@@ -84,15 +85,20 @@ public:
         return it == node_schedules.end() ? 0.0 : it->get_total_finish_time();
     }
 
-    void print() const {
+    void print(std::string const & algo, std::optional<bool> const is_valid = std::nullopt) const {
+        std::cout << "########## " << algo << " Schedule: ##########\n";
         for (node_schedule const & node_s : node_schedules) {
             std::cout << node_s.to_string() << '\n';
         }
 
-        std::cout << "[makespan: " << get_makespan() << "]" << std::endl;
+        std::cout << "makespan: " << get_makespan() << '\n';
+
+        if (is_valid.has_value()) {
+            std::cout << "schedule " << (is_valid.value() ? "is " : "not ") << "valid\n";
+        }
     }
 
-    bool is_valid(workflow const & w) const {
+    bool is_valid(workflow::workflow const & w) const {
         for (workflow::task const & t : w) {
             for (auto const & [neighbor_id, data_transfer] : w.get_task_incoming_edges(t.id)) {
                 time_interval const & curr_t_interval = task_intervals.at(t.id);
@@ -115,7 +121,7 @@ public:
 private:
     time_t task_ready_time(
         workflow::task_id const t_id,
-        workflow const & w,
+        workflow::workflow const & w,
         cluster::node_id const target_node_id
     ) const {
         auto data_available_times = w.get_task_incoming_edges(t_id)

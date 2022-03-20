@@ -1,8 +1,10 @@
 #pragma once
 
 #include <algorithm>
+#include <iostream>
 #include <functional>
 #include <numeric>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -12,44 +14,38 @@ public:
 
     struct cluster_node {
         node_id const id;
+        double const network_bandwidth;
+        double const core_performance;
         size_t const memory;
         size_t const num_cores;
-        double const core_performance;
-        double const network_bandwidth;
 
         double performance() const {
             // assumes perfectly parallelizable tasks
             return core_performance * num_cores;
+        }
+
+        std::string to_string() const {
+            std::stringstream out{};
+
+            out << "Node " << id
+                << ": bandwidth " << network_bandwidth
+                << ", performance " << core_performance
+                << ", memory " << memory
+                << ", num_cores " << num_cores;
+
+            return out.str();
         }
     };
 
     using const_iterator = std::vector<cluster_node>::const_iterator;
 
 private:
-    std::vector<cluster_node> nodes{};
+    std::vector<cluster_node> const nodes{};
 
 public:
-    cluster(
-        std::vector<size_t> const & memories,
-        std::vector<size_t> const & num_cores,
-        std::vector<double> const & core_performances,
-        std::vector<double> const & bandwidths
-    ) {
-        if (
-            memories.size() != num_cores.size() ||
-            memories.size() != core_performances.size() ||
-            memories.size() != bandwidths.size()
-        ) {
-            throw std::invalid_argument("Arguments for cluster parameters must be of the same size.");
-        } else if (memories.empty()) {
-            throw std::invalid_argument("Cluster cannot be empty.");
-        }
-
-        for (size_t i = 0; i < memories.size(); i++) {
-            cluster_node n{i, memories[i], num_cores[i], core_performances[i], bandwidths[i]};
-            nodes.push_back(n);
-        }
-    }
+    cluster(std::vector<cluster_node> const nodes_) 
+    : nodes(std::move(nodes_)) 
+    {}
 
     double mean_node_performance() const {
         double const performance_sum = std::transform_reduce(
@@ -88,6 +84,14 @@ public:
         );
 
         return performance_sum / size();
+    }
+
+    void print() const {
+        std::cout << "########## Cluster: ##########\n";
+        for(cluster_node const & node : nodes) {
+            std::cout << node.to_string() << '\n';
+        }
+        std::cout << '\n';
     }
 
     size_t size() const {

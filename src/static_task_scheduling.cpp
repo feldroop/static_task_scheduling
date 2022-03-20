@@ -2,105 +2,37 @@
 #include <vector>
 
 #include <algorithms/heft.hpp>
-#include <cluster.hpp>
+#include <cluster/cluster.hpp>
 #include <io/parse_command_line.hpp>
+#include <io/read_csv.hpp>
 #include <schedule/schedule.hpp>
-#include <workflow.hpp>
-
-cluster create_example_cluster() {
-    std::vector<size_t> memories{
-        50, 100, 200
-    };
-
-    std::vector<size_t> num_cores{
-        1, 1, 1
-    };
-    
-    std::vector<double> core_performances{
-        10.0, 5.0, 20.0
-    };
-
-    std::vector<double> bandwidths{
-        5.0, 5.0, 5.0
-    };
-
-    return cluster(memories, num_cores, core_performances, bandwidths);
-}
-
-workflow create_example_workflow() {
-    // tasks
-    std::vector<double> computation_costs{
-        1000.0,
-        500.0, 500.0, 500.0, 500.0,
-        400.0, 400.0, 400.0, 400.0,
-        800.0
-    };
-
-    std::vector<size_t> memory_requirements{
-        1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1
-    };
-
-    // discreptancy with Somayeh's input data?
-    std::vector<double> input_data_sizes{
-        0.0,
-        10.0, 10.0, 10.0, 10.0,
-        20.0, 20.0, 20.0, 20.0,
-        25.0
-    };
-
-    std::vector<double> output_data_sizes{
-        10.0,
-        20.0, 20.0, 20.0, 20.0,
-        25.0, 25.0, 25.0, 25.0,
-        0.0
-    };
-
-    // edge dependencies
-    std::vector<workflow::task_id> from_ids{
-        0, 0, 0, 0,
-        1, 2, 3, 4,
-        5, 6, 7, 8
-    };
-
-    std::vector<workflow::task_id> to_ids{
-        1, 2, 3, 4,
-        5, 6, 7, 8,
-        9, 9, 9, 9
-    };
-
-    return workflow(
-        computation_costs, 
-        memory_requirements, 
-        input_data_sizes,
-        output_data_sizes,
-        from_ids, 
-        to_ids
-    );
-}
+#include <workflow/expand_task_bags.hpp>
+#include <workflow/workflow.hpp>
 
 int main(int argc, char *argv[]) {
-    auto const args = parse_command_line(argc, argv);
+    auto const args_option = io::parse_command_line(argc, argv);
 
-    if (!args) {
+    if (!args_option) {
         return -1;
     }
 
-    // illustrative example
-    cluster const c = create_example_cluster();
-    workflow const w = create_example_workflow();
+    auto const args = args_option.value();
+
+    auto const cluster_nodes = io::read_cluster_csv(args.cluster_input);
+    cluster const c(std::move(cluster_nodes));
+    c.print();
+
+    auto const task_bags = io::read_task_bag_csv(args.task_bag_input);
+    auto const [tasks, input_data_sizes, output_data_sizes] = expand_task_bags(task_bags);
+
+    auto const dependencies = io::read_dependency_csv(args.dependency_input);
+
+    workflow::workflow const w(tasks, input_data_sizes, output_data_sizes, dependencies);
+    std::cout << w.to_string(c.best_node_performance());
 
     schedule::schedule const s = algorithms::heft(c, w);
 
-    std::cout << "[sequential makespan: " 
-              << w.get_sequential_makespan(c.best_node_performance())
-              << "]\n";
-
-    s.print();
-
-    std::cout << "[schedule " << (s.is_valid(w) ? "is " : "not ") << "valid]\n";
+    s.print("HEFT", s.is_valid(w));
 
     return 0;
 }
