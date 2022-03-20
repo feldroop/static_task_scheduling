@@ -102,12 +102,23 @@ public:
 
         out << "########## Workflow: ##########\n";
 
-        out << "TODO\n";
+        for (task const & t : g.get_all_vertices()) {
+            out << "task " << t.id 
+                << ": workload " << t.workload
+                << ", memory " << t.memory_requirement
+                << ",\n\tdependencies:";
+
+            for (auto const & [neighbor_id, data_transfer] : g.get_outgoing_edges(t.id)) {
+                out << " (-> " << neighbor_id << ", " << data_transfer << ')';
+            }
+
+            out << '\n';
+        }
 
         if (best_performance_opt) {
             out << "sequential makespan: " 
                 << get_sequential_makespan(best_performance_opt.value())
-                << "\n";
+                << '\n';
         }
 
         out << '\n';
