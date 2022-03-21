@@ -16,7 +16,6 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
     auto cluster_option = required("-c", "--cluster") & value("cluster_file", args.cluster_input);
     auto task_bags_option = required("-t", "--tasks") & value("tasks_file", args.task_bag_input);
     auto dependency_option = required("-d", "--dependencies") & value("dependencies_file", args.dependency_input);
-    auto workflow_option = required("-w", "--workflow") & value("workflow_file", args.task_bag_input);
 
     auto output_option = option("-o", "--output") & value("output_file", args.output);
     auto verbose_option = option("-v", "--verbose")
@@ -30,17 +29,12 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "File in .csv format that describes the tasks of the workflow. "
         "It should contain exactly the fields workload, input_data_size, output_data_size, "
         "memory and cardinality. "
-        "This is used preferably over task descriptions in a workflow file and the tasks are "
-        "assigned ids in ascending order after generating them from the bags."
     );
     std::string const dependency_doc = (
-        "File in .csv format that describes the task dependencies. "
-        "It should contain exactly the fields from_id and to_id."
-    );
-    std::string const workflow_doc = (
-        "An XML file according to the schema at https://pegasus.isi.edu/schema/dax-2.1.xsd. "
-        "If only this is given, the whole workflow is read from this file. If additionally tasks "
-        "are supplied in a .csv file, those tasks are used instead."
+        "File that contains the dependencies for the workflow tasks. " 
+        "Can either be in csv format or in xml format. "
+        "A csv file should contain exactly the fields from_id and to_id. "
+        "An xml file should model the schema at https://pegasus.isi.edu/schema/dax-2.1.xsd."
     );
     std::string const output_doc = (
         "If given, the verbose output of this program is written to this file as plain text."
@@ -49,19 +43,11 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "If given, all metrics and the full solution are printed to the command line."
     );
 
-    // I am not 100% if it is allowed to use the same option multiple times, but it works
     auto cli = (
         "Input" % (
             cluster_option % cluster_doc,
-            (
-                (task_bags_option % task_bags_doc) &
-                (dependency_option % dependency_doc)
-            ) |
-            (
-                task_bags_option &
-                (workflow_option % workflow_doc)
-            ) |
-            workflow_option
+            task_bags_option % task_bags_doc,
+            dependency_option % dependency_doc
         ),
         "Output" % (
             output_option % output_doc,
@@ -72,10 +58,7 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
     auto res = parse(argc, argv, cli);
 
     if(res.any_error()) {
-        auto fmt = doc_formatting{}
-           .last_column(111);
-
-        std::cout << make_man_page(cli, "static_task_scheduling", fmt);
+        std::cout << make_man_page(cli, "static_task_scheduling");
         return std::nullopt;
     }
 
