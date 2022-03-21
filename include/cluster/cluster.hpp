@@ -16,7 +16,7 @@ public:
         node_id const id;
         double const network_bandwidth;
         double const core_performance;
-        size_t const memory;
+        double const memory;
         size_t const num_cores;
 
         double performance() const {

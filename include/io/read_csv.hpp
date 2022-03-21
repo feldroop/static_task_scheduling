@@ -25,8 +25,8 @@ std::vector<cluster::cluster_node> read_cluster_csv(std::string const & filename
 
     in.read_header(ignore_no_column, "bandwidth", "performance", "memory", "num_cores");
 
-    double bandwidth, performance;
-    size_t memory, num_cores, id{0};
+    double bandwidth, performance, memory;
+    size_t num_cores, id{0};
 
     while (in.read_row(bandwidth, performance, memory, num_cores)) {
         nodes.emplace_back(id, bandwidth, performance, memory, num_cores);
@@ -42,8 +42,8 @@ std::vector<workflow::task_bag> read_task_bag_csv(std::string const & filename) 
 
     in.read_header(ignore_no_column, "workload", "input_data_size", "output_data_size", "memory", "cardinality");
 
-    double workload, input_data_size, output_data_size;
-    size_t memory, cardinality;
+    double workload, input_data_size, output_data_size, memory;
+    size_t cardinality;
 
     while (in.read_row(workload, input_data_size, output_data_size, memory, cardinality)) {
         task_bags.emplace_back(workload, input_data_size, output_data_size, memory, cardinality);
