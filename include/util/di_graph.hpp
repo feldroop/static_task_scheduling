@@ -9,13 +9,13 @@
 // simple directed graph, no delete functionality
 // implemented using a hashmap based sparse adjacency matrix
 
-// V: vertex type, E: edge "weight" type
-// E should be cheap to copy and store
-template <typename V, typename E>
+// V: vertex type, W: edge "weight" type
+// W should be cheap to copy and store
+template <typename V, typename W>
 class di_graph {
 public:
     using vertex_id = size_t;
-    using weight_matrix = std::vector<std::unordered_map<vertex_id, E>>;
+    using weight_matrix = std::vector<std::unordered_map<vertex_id, W>>;
     using vertex_iterator = std::vector<V>::const_iterator;
 
 private:
@@ -40,16 +40,16 @@ public:
     }
 
     // returns whether an edge was created
-    bool add_edge(vertex_id const from_id, vertex_id const to_id, E const weight) {
+    bool add_edge(vertex_id const from_id, vertex_id const to_id, W const weight) {
         if (from_id >= vertices.size() ||
               to_id >= vertices.size() ||
-            incoming_edges[to_id].contains(from_id)) {
+            incoming_edges.at(to_id).contains(from_id)) {
             return false;
         }
         
         // copy weight for convenient handling and access
-        incoming_edges[to_id][from_id] = weight;
-        outgoing_edges[from_id][to_id] = std::move(weight);
+        incoming_edges.at(to_id).insert({from_id, weight});
+        outgoing_edges.at(from_id).insert({to_id, weight});
 
         return true;
     }
@@ -62,7 +62,7 @@ public:
         return vertices;
     }
 
-    std::unordered_map<vertex_id, E> const & get_incoming_edges(vertex_id const v_id) const {
+    std::unordered_map<vertex_id, W> const & get_incoming_edges(vertex_id const v_id) const {
         return incoming_edges.at(v_id);
     }
 
@@ -70,7 +70,7 @@ public:
         return incoming_edges;
     }
 
-    std::unordered_map<vertex_id, E> const & get_outgoing_edges(vertex_id const v_id) const {
+    std::unordered_map<vertex_id, W> const & get_outgoing_edges(vertex_id const v_id) const {
         return outgoing_edges.at(v_id);
     }
 
