@@ -8,8 +8,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include <schedule/time_interval.hpp>
 #include <util/di_graph.hpp>
+#include <util/timepoint.hpp>
 #include <workflow/dependency.hpp>
 #include <workflow/task.hpp>
 
@@ -83,7 +83,7 @@ public:
         return upward_ranks;
     }
 
-    schedule::time_t get_sequential_makespan(double const best_cluster_node_performance) const {
+    util::timepoint get_sequential_makespan(double const best_cluster_node_performance) const {
         auto const & tasks = g.get_all_vertices();
         
         return std::transform_reduce(

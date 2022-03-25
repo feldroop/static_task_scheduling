@@ -4,7 +4,9 @@
 #include <sstream>
 #include <vector>
 
+#include <cluster/cluster_node.hpp>
 #include <schedule/time_interval.hpp>
+#include <util/timepoint.hpp>
 #include <workflow/workflow.hpp>
 
 namespace schedule {
@@ -17,7 +19,7 @@ public:
     using iterator = std::vector<time_interval>::iterator;
 
     struct time_slot {
-        time_t const eft;
+        util::timepoint const eft;
         iterator const it;
     };
 
@@ -26,19 +28,19 @@ public:
 
     // returns EFT and iterator before which the task could be scheduled
     time_slot compute_earliest_finish_time(
-        time_t const ready_time,
+        util::timepoint const ready_time,
         workflow::task const & t
     ) {
-        auto ends_before = [] (time_interval const & interval, time_t const & time) {
+        auto ends_before = [] (time_interval const & interval, util::timepoint const & time) {
             return interval.end < time;
         };
         auto curr_it = std::lower_bound(intervals.begin(), intervals.end(), ready_time, ends_before);
         
-        time_t const computation_time = get_computation_time(t);
+        util::timepoint const computation_time = get_computation_time(t);
 
         if (curr_it == intervals.end()) {
             // no insertion possible -> schedule task to end after ready time
-            time_t const earliest_start_time = intervals.empty() ? ready_time : std::max(intervals.back().end, ready_time);
+            util::timepoint const earliest_start_time = intervals.empty() ? ready_time : std::max(intervals.back().end, ready_time);
             return time_slot{earliest_start_time + computation_time, intervals.end()};
         }
 
@@ -69,11 +71,11 @@ public:
         return node;
     }
 
-    time_t get_computation_time(workflow::task const & t) const {
+    util::timepoint get_computation_time(workflow::task const & t) const {
         return t.workload / node.performance();
     }
 
-    time_t get_total_finish_time() const {
+    util::timepoint get_total_finish_time() const {
         return intervals.empty() ? 0.0 : intervals.back().end;
     }
 

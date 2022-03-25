@@ -30,7 +30,7 @@ std::vector<workflow::task_id> task_ids_sorted_by_upward_ranks(
 // running time in the original paper which is O(|E| * |C|)
 
 schedule::schedule heft(
-    cluster const & c, 
+    cluster::cluster const & c, 
     workflow::workflow const & w
 ) {
     auto const upward_ranks = w.all_upward_ranks(

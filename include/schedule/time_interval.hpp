@@ -2,14 +2,14 @@
 
 #include <cstddef>
 
-namespace schedule {
+#include <util/timepoint.hpp>
 
-using time_t = double;
+namespace schedule {
 
 struct time_interval {
     // members can't be const because this needs to be move-assignable
-    time_t start;
-    time_t end;
+    util::timepoint start;
+    util::timepoint end;
     size_t task_id;
     size_t node_id;
 };

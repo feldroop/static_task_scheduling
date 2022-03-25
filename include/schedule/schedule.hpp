@@ -10,6 +10,7 @@
 #include <cluster/cluster.hpp>
 #include <schedule/node_schedule.hpp>
 #include <schedule/time_interval.hpp>
+#include <util/timepoint.hpp>
 #include <workflow/workflow.hpp>
 
 namespace schedule {
@@ -20,7 +21,7 @@ class schedule {
     std::unordered_map<size_t, time_interval> task_intervals{};
 
 public:
-    schedule(cluster const & c) {
+    schedule(cluster::cluster const & c) {
         for (cluster::cluster_node const & node : c) {
             node_schedules.emplace_back(node);
         }
@@ -65,14 +66,14 @@ public:
         auto const [slot, node_id] = *best_eft_it;
 
         node_schedule & best_node_s = node_schedules.at(node_id);
-        time_t const start = slot.eft - best_node_s.get_computation_time(t);
+        util::timepoint const start = slot.eft - best_node_s.get_computation_time(t);
         time_interval best_interval{start, slot.eft, t.id, node_id};
 
         task_intervals.insert({t.id, best_interval});
         node_schedules.at(node_id).insert(slot.it, best_interval);
     }
 
-    time_t get_makespan() const {
+    util::timepoint get_makespan() const {
         auto it = std::max_element(
             node_schedules.begin(), 
             node_schedules.end(), 
@@ -104,6 +105,12 @@ public:
 
     bool is_valid(workflow::workflow const & w, double const epsilon = 0.0000000001) const {
         for (workflow::task const & t : w) {
+            if (!task_intervals.contains(t.id)) {
+                return false;
+            }
+        }
+        
+        for (workflow::task const & t : w) {
             for (auto const & [neighbor_id, data_transfer] : w.get_task_incoming_edges(t.id)) {
                 time_interval const & curr_t_interval = task_intervals.at(t.id);
                 time_interval const & neighbor_interval = task_intervals.at(neighbor_id);
@@ -124,7 +131,7 @@ public:
     }
 
 private:
-    time_t task_ready_time(
+    util::timepoint task_ready_time(
         workflow::task_id const t_id,
         workflow::workflow const & w,
         cluster::node_id const target_node_id
@@ -147,7 +154,7 @@ private:
         return latest_it != data_available_times.end() ? *latest_it : 0.0;
     }
 
-    time_t get_data_transfer_cost(
+    util::timepoint get_data_transfer_cost(
         cluster::node_id const node_id0,
         cluster::node_id const node_id1,
         double const data_transfer
