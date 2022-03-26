@@ -10,6 +10,7 @@
 #include <cluster/cluster.hpp>
 #include <schedule/node_schedule.hpp>
 #include <schedule/time_interval.hpp>
+#include <util/epsilon_compare.hpp>
 #include <util/timepoint.hpp>
 #include <workflow/workflow.hpp>
 
@@ -103,7 +104,7 @@ public:
         return out.str();
     }
 
-    bool is_valid(workflow::workflow const & w, double const epsilon = 0.0000000001) const {
+    bool is_valid(workflow::workflow const & w) const {
         for (workflow::task const & t : w) {
             if (!task_intervals.contains(t.id)) {
                 return false;
@@ -121,8 +122,8 @@ public:
                     data_transfer
                 );
 
-                // epsilon added for floating point comparison
-                if (neighbor_interval.end + data_transfer_cost > curr_t_interval.start + epsilon) {
+                // epsilon for floating point comparison
+                if (!util::epsilon_less(neighbor_interval.end + data_transfer_cost, curr_t_interval.start)) {
                     return false;
                 }; 
             }
