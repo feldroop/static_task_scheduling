@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     
     workflow::workflow const w(tasks, input_data_sizes, output_data_sizes, dependencies);
     
-    io::handle_output(args, w, c.best_node_performance());
+    io::handle_output(args, w, c.best_performance());
 
     algorithms::execute(args, c, w, algorithms::algorithm::HEFT);
     

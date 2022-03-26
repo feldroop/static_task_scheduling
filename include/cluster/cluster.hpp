@@ -24,7 +24,17 @@ public:
     : nodes(std::move(nodes_)) 
     {}
 
-    double mean_node_performance() const {
+    node_id best_performance_node() const {
+        return std::max_element(
+            begin(),
+            end(),
+            [] (auto const & n0, auto const & n1) {
+                return n0.performance() < n1.performance();
+            }
+        )->id;
+    }
+
+    double mean_performance() const {
         double const performance_sum = std::transform_reduce(
             begin(), 
             end(),
@@ -38,7 +48,7 @@ public:
         return performance_sum / size();
     }
 
-    double best_node_performance() const {
+    double best_performance() const {
         // safe dereference because cluster size enforced to be > 0
         return std::max_element(
             begin(),
@@ -49,7 +59,7 @@ public:
         )->performance();
     }
 
-    double mean_node_bandwidth() const {
+    double mean_bandwidth() const {
         double const performance_sum = std::transform_reduce(
             begin(), 
             end(),

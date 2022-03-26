@@ -34,8 +34,8 @@ schedule::schedule heft(
     workflow::workflow const & w
 ) {
     auto const upward_ranks = w.all_upward_ranks(
-        c.mean_node_performance(),
-        c.mean_node_bandwidth()
+        c.mean_performance(),
+        c.mean_bandwidth()
     );
 
     std::vector<size_t> const priority_list = task_ids_sorted_by_upward_ranks(upward_ranks);
