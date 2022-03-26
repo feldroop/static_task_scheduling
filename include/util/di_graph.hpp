@@ -107,8 +107,7 @@ public:
             independent_vertex_ids.pop_back();
             topological_order.push_back(curr_vertex_id);
 
-            for (auto const & [neighbor_id, weight] : outgoing_edges.at(curr_vertex_id))
-            {
+            for (auto const & [neighbor_id, weight] : outgoing_edges.at(curr_vertex_id)) {
                 size_t const num_erased = temp_incoming_edges.at(neighbor_id).erase(curr_vertex_id);
                 if (num_erased != 1) {
                     return std::nullopt;

@@ -21,6 +21,8 @@ public:
 
 private:
     di_graph<task, double> g;
+    std::vector<task_id> topological_task_order;
+    std::vector<task_id> independent_task_ids;
 
 public:
     // create a DAG workflow represetation based on the input specifications
@@ -61,6 +63,28 @@ public:
                 throw std::invalid_argument("Task ids for dependency endpoints are invalid.");
             }
         }
+
+        topological_task_order = g.topological_order().value();
+        independent_task_ids = g.get_independent_vertex_ids();
+    }
+
+    std::unordered_map<task_id, double> all_downward_ranks(
+        double const mean_cluster_performance,
+        double const mean_cluster_bandwidth
+    ) const {
+        std::unordered_map<task_id, double> downward_ranks{};
+        
+        for (task_id const t_id : topological_task_order) {
+            double const downward_rank = compute_downward_rank(
+                downward_ranks, 
+                mean_cluster_performance, 
+                mean_cluster_bandwidth, 
+                t_id
+            );
+            downward_ranks.insert({t_id, downward_rank});
+        }
+
+        return downward_ranks;
     }
 
     std::unordered_map<task_id, double> all_upward_ranks(
@@ -69,8 +93,7 @@ public:
     ) const {
         std::unordered_map<task_id, double> upward_ranks{};
         
-        auto topological_order = g.topological_order().value();
-        for (task_id const t_id : std::views::reverse(topological_order)) {
+        for (task_id const t_id : std::views::reverse(topological_task_order)) {
             double const upward_rank = compute_upward_rank(
                 upward_ranks, 
                 mean_cluster_performance, 
@@ -126,12 +149,24 @@ public:
         return out.str();
     }
 
+    std::vector<task_id> const & get_independent_task_ids() const {
+        return independent_task_ids;
+    }
+
     std::unordered_map<task_id, double> const & get_task_incoming_edges(task_id const t_id) const {
         return g.get_incoming_edges(t_id);
     }
 
     std::unordered_map<task_id, double> const & get_task_outgoing_edges(task_id const t_id) const {
         return g.get_outgoing_edges(t_id);
+    }
+
+    di_graph<task, double>::weight_matrix const & get_all_incoming_edges() const {
+        return g.get_all_incoming_edges();
+    }
+
+    di_graph<task, double>::weight_matrix const & get_all_outgoing_edges() const {
+        return g.get_all_outgoing_edges();
     }
 
     task const & get_task(task_id const t_id) const {
@@ -158,7 +193,7 @@ private:
         double const mean_cluster_bandwidth,
         task_id const t_id
     ) const {
-        double upward_rank = g.get_vertex(t_id).workload * mean_cluster_performance;
+        double upward_rank = g.get_vertex(t_id).workload / mean_cluster_performance;
 
         auto outgoing_ranks = g.get_outgoing_edges(t_id) 
             | std::views::transform([&upward_ranks, mean_cluster_bandwidth] (auto const & edge) {
@@ -173,6 +208,29 @@ private:
         }
 
         return upward_rank;
+    }
+
+    double compute_downward_rank(
+        std::unordered_map<task_id, double> const & downward_ranks,
+        double const mean_cluster_performance,
+        double const mean_cluster_bandwidth,
+        task_id const t_id
+    ) const {
+        auto incoming_ranks = g.get_incoming_edges(t_id) 
+            | std::views::transform([this, &downward_ranks, mean_cluster_performance, mean_cluster_bandwidth] (auto const & edge) {
+                auto const & [neighbor_id, data_transfer] = edge;
+                double const neighbor_compute_cost = g.get_vertex(neighbor_id).workload / mean_cluster_performance;
+                double const data_transfer_cost = data_transfer / mean_cluster_bandwidth;
+                return  neighbor_compute_cost + data_transfer_cost + downward_ranks.at(neighbor_id);
+            }
+        );
+
+        auto const max_it = std::ranges::max_element(incoming_ranks);
+        if (max_it == incoming_ranks.end()) {
+            return 0.0;
+        }
+
+        return *max_it;
     }
 };
 

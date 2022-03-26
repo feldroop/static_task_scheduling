@@ -28,6 +28,25 @@ public:
         }
     }
 
+    void insert_into_node_schedule(
+        workflow::task_id const t_id,
+        cluster::node_id const n_id,
+        workflow::workflow const & w
+    ) {
+        workflow::task const & t = w.get_task(t_id);
+        node_schedule & node_s = node_schedules.at(n_id);
+        
+        double const ready_time = task_ready_time(t.id, w, n_id);
+        
+        auto slot = node_s.compute_earliest_finish_time(ready_time, t);
+
+        util::timepoint const start = slot.eft - node_s.get_computation_time(t);
+        time_interval best_interval{start, slot.eft, t.id, n_id};
+
+        task_intervals.insert({t.id, best_interval});
+        node_s.insert(slot.it, best_interval);
+    }
+
     void insert_into_best_eft_node_schedule(
         workflow::task_id const t_id,
         workflow::workflow const & w
@@ -71,7 +90,7 @@ public:
         time_interval best_interval{start, slot.eft, t.id, node_id};
 
         task_intervals.insert({t.id, best_interval});
-        node_schedules.at(node_id).insert(slot.it, best_interval);
+        best_node_s.insert(slot.it, best_interval);
     }
 
     util::timepoint get_makespan() const {

@@ -5,3 +5,4 @@ Implementations of different static task scheduling algorithms to evaluate a pro
 ## Implemented algorithms
 
 * Original HEFT (https://ieeexplore.ieee.org/document/993206)
+* Original CPOP (https://ieeexplore.ieee.org/document/993206)

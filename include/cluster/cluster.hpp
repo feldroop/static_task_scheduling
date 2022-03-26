@@ -4,6 +4,7 @@
 #include <iostream>
 #include <functional>
 #include <numeric>
+#include <ranges>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -24,12 +25,18 @@ public:
     : nodes(std::move(nodes_)) 
     {}
 
-    node_id best_performance_node() const {
-        return std::max_element(
-            begin(),
-            end(),
-            [] (auto const & n0, auto const & n1) {
-                return n0.performance() < n1.performance();
+    node_id best_performance_node(double const memory_requirement = 0.0) const {
+        auto valid_nodes = nodes 
+            | std::views::filter([memory_requirement] (cluster_node const & node) {
+                return node.memory >= memory_requirement;
+            });
+
+        // safe dereference because cluster size enforced to be > 0
+        return std::ranges::max_element(
+            valid_nodes,
+            {},
+            [] (cluster_node const & node) {
+                return node.performance();
             }
         )->id;
     }
