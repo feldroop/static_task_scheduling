@@ -79,7 +79,7 @@ public:
     }
 
     // returns vertices without incoming edges ("independent vertices")
-    std::vector<vertex_id> independent_vertices() const {
+    std::vector<vertex_id> get_independent_vertex_ids() const {
         std::vector<vertex_id> independent_vertex_ids{};
 
         for (vertex_id v_id = 0; v_id < vertices.size(); ++v_id) {
@@ -95,7 +95,7 @@ public:
     // running time: linear in the number of edges
     std::optional<std::vector<vertex_id>> topological_order() const {
         std::vector<vertex_id> topological_order{};
-        std::vector<vertex_id> independent_vertex_ids = independent_vertices();
+        std::vector<vertex_id> independent_vertex_ids = get_independent_vertex_ids();
 
         // copy incoming edges to modify
         auto temp_incoming_edges = incoming_edges;
