@@ -31,10 +31,13 @@ void execute(
 
     std::string const algo_str = algorithms::to_string(algo);
 
-    io::handle_output(args, s, algo_str, s.is_valid(w));
+    bool const valid = s.is_valid(w);
+
+    io::handle_output(args, s, algo_str, valid);
 
     if (!args.verbose) {
-        std::cout << algo_str << " makespan: " << s.get_makespan() << '\n';
+        std::cout << algo_str << " makespan: " << s.get_makespan() << ' '
+            << (valid ? "(" : "(not ") << "valid)\n";
     }
 }
 
