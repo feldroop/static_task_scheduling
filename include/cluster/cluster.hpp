@@ -57,11 +57,11 @@ public:
 
     double best_performance() const {
         // safe dereference because cluster size enforced to be > 0
-        return std::max_element(
-            begin(),
-            end(),
-            [] (auto const & n0, auto const & n1) {
-                return n0.performance() < n1.performance();
+        return std::ranges::max_element(
+            nodes,
+            {},
+            [] (cluster_node const & node) {
+                return node.performance();
             }
         )->performance();
     }

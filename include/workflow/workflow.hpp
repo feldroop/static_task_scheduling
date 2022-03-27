@@ -202,7 +202,7 @@ private:
             }
         );
 
-        auto const max_it = std::max_element(outgoing_ranks.begin(), outgoing_ranks.end());
+        auto const max_it = std::ranges::max_element(outgoing_ranks);
         if (max_it != outgoing_ranks.end()) {
             upward_rank += *max_it;
         }

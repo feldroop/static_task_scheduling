@@ -67,14 +67,12 @@ public:
             | std::views::filter(has_enough_memory)
             | std::views::transform(earliest_finish_time_of_node);
 
-        auto earlier_finish_time = [] (auto const & tup0, auto const & tup1) {
-            return std::get<0>(tup0).eft < std::get<0>(tup1).eft;
-        };
-
-        auto best_eft_it = std::min_element(
-            earliest_finish_times.begin(), 
-            earliest_finish_times.end(),
-            earlier_finish_time
+        auto best_eft_it = std::ranges::min_element(
+            earliest_finish_times,
+            {},
+            [] (auto const & tup) {
+                return std::get<0>(tup).eft;
+            }
         );
 
         if (best_eft_it == earliest_finish_times.end()) {
@@ -94,12 +92,12 @@ public:
     }
 
     util::timepoint get_makespan() const {
-        auto it = std::max_element(
-            node_schedules.begin(), 
-            node_schedules.end(), 
-            [] (auto const & node_s0, auto const & node_s1)
+        auto it = std::ranges::max_element(
+            node_schedules,
+            {},
+            [] (auto const & node_s)
             {
-                return node_s0.get_total_finish_time() < node_s1.get_total_finish_time();
+                return node_s.get_total_finish_time();
             }
         );
 
@@ -170,7 +168,7 @@ private:
             }             
         );
 
-        auto latest_it = std::max_element(data_available_times.begin(), data_available_times.end());
+        auto latest_it = std::ranges::max_element(data_available_times);
         return latest_it != data_available_times.end() ? *latest_it : 0.0;
     }
 
