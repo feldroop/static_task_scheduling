@@ -17,17 +17,13 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 add_subdirectory(lib/clipp)
 
 # dependency: fast-cpp-csv-parser
-add_library(csv_lib STATIC lib/csv/csv.h)
-set_target_properties(csv_lib PROPERTIES LINKER_LANGUAGE CXX)
-
-# dependency: pugixml
-add_subdirectory(lib/pugixml)
+add_library(csv STATIC lib/csv/csv.h)
+set_target_properties(csv PROPERTIES LINKER_LANGUAGE CXX)
 
 add_executable(static_task_scheduling src/static_task_scheduling.cpp)
 
 target_include_directories(static_task_scheduling PRIVATE include)
 target_include_directories(static_task_scheduling PRIVATE lib/csv)
 
-target_link_libraries(static_task_scheduling clipp::clipp)
-target_link_libraries(static_task_scheduling csv_lib)
-target_link_libraries(static_task_scheduling pugixml::pugixml)
+target_link_libraries(static_task_scheduling clipp)
+target_link_libraries(static_task_scheduling csv)

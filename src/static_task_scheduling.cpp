@@ -8,7 +8,6 @@
 #include <io/handle_output.hpp>
 #include <io/parse_command_line.hpp>
 #include <io/read_csv.hpp>
-#include <io/read_workflow_xml.hpp>
 #include <schedule/schedule.hpp>
 #include <workflow/expand_task_bags.hpp>
 #include <workflow/workflow.hpp>
@@ -35,16 +34,7 @@ int main(int argc, char *argv[]) {
     auto const task_bags = io::read_task_bag_csv(args.task_bag_input);
     auto const [tasks, input_data_sizes, output_data_sizes] = expand_task_bags(task_bags);
 
-    std::filesystem::path dependency_path(args.dependency_input);
-    std::vector<workflow::dependency> dependencies;
-    
-    if (dependency_path.extension() == ".csv") {
-        dependencies = io::read_dependency_csv(args.dependency_input);
-    } else if (dependency_path.extension() == ".xml") {
-        dependencies = io::read_workflow_xml(args.dependency_input);
-    } else {
-        throw std::runtime_error("Could not infer file type of dependency file");
-    }
+    auto const dependencies = io::read_dependency_csv(args.dependency_input);
     
     workflow::workflow const w(tasks, input_data_sizes, output_data_sizes, dependencies);
     

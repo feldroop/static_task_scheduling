@@ -31,10 +31,8 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "memory and cardinality. "
     );
     std::string const dependency_doc = (
-        "File that contains the dependencies for the workflow tasks. " 
-        "Can either be in csv format or in xml format. "
-        "A csv file should contain exactly the fields from_id and to_id. "
-        "An xml file should model the schema at https://pegasus.isi.edu/schema/dax-2.1.xsd."
+        "File in .csv format that contains the dependencies for the workflow tasks. " 
+        "It should contain exactly the fields from_id and to_id."
     );
     std::string const output_doc = (
         "If given, the verbose output of this program is written to this file as plain text."
