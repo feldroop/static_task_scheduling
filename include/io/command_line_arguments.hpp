@@ -13,6 +13,8 @@ struct command_line_arguments {
 
     std::string output{};
     bool verbose{false};
+
+    bool use_memory_requirements{false};
 };
 
 } // namespace io

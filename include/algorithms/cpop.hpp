@@ -72,13 +72,18 @@ std::unordered_set<workflow::task_id> compute_critical_path(
 cluster::node_id best_fitting_node(
     std::unordered_set<workflow::task_id> const & critical_path,
     workflow::workflow const & w,
-    cluster::cluster const & c
+    cluster::cluster const & c,
+    bool const use_memory_requirements
 ) {
+    if (!use_memory_requirements) {
+        return c.best_performance_node();
+    }
+
     // in our input model, the critical path is simply scheduled on
-    // the best node with sufficient memory
+    // the best node with sufficient memory if we want to use the memory requirements
     auto critical_path_memories = critical_path 
         | std::views::transform([&w] (workflow::task_id const & t_id) {
-        return w.get_task(t_id).memory_requirement;
+            return w.get_task(t_id).memory_requirement;
         });
     double const critical_path_memory_requirement = *std::ranges::min_element(critical_path_memories);
     return c.best_performance_node(critical_path_memory_requirement);
@@ -89,7 +94,8 @@ cluster::node_id best_fitting_node(
 
 schedule::schedule cpop(
     cluster::cluster const & c, 
-    workflow::workflow const & w
+    workflow::workflow const & w,
+    bool const use_memory_requirements
 ) {
     auto const downward_ranks = w.all_downward_ranks(
         c.mean_performance(),
@@ -105,9 +111,9 @@ schedule::schedule cpop(
     
     auto const critical_path = compute_critical_path(w, task_priorities);
 
-    cluster::node_id const best_node = best_fitting_node(critical_path, w, c);
+    cluster::node_id const best_node = best_fitting_node(critical_path, w, c, use_memory_requirements);
 
-    schedule::schedule s(c);
+    schedule::schedule s(c, use_memory_requirements);
 
     struct prioritized_task {
         // members can't be const because the priority queue needs this to be moveable

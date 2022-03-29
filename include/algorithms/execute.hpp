@@ -20,12 +20,12 @@ void execute(
     workflow::workflow const & w,
     algorithm const algo
 ) {
-    schedule::schedule s(c);
+    schedule::schedule s(c, args.use_memory_requirements);
 
     switch (algo) {
-        case algorithm::HEFT: s = algorithms::heft(c, w);
+        case algorithm::HEFT: s = algorithms::heft(c, w, args.use_memory_requirements);
         break;
-        case algorithm::CPOP: s = algorithms::cpop(c, w);
+        case algorithm::CPOP: s = algorithms::cpop(c, w, args.use_memory_requirements);
         break;
     }
 
@@ -37,7 +37,7 @@ void execute(
 
     if (!args.verbose) {
         std::cout << algo_str << " makespan: " << s.get_makespan() << ' '
-            << (valid ? "(" : "(not ") << "valid)\n";
+            << (valid ? "(" : "(NOT ") << "valid)\n";
     }
 }
 

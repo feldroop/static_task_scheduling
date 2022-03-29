@@ -1,5 +1,10 @@
 #pragma once
 
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 // no threads needed as the input data sizes are usually not large
 #define CSV_IO_NO_THREAD 
 #include <csv.h>
@@ -31,6 +36,19 @@ std::vector<cluster::cluster_node> read_cluster_csv(std::string const & filename
     while (in.read_row(bandwidth, performance, memory, num_cores)) {
         nodes.emplace_back(id, bandwidth, performance, memory, num_cores);
         ++id;
+    }
+
+    if (nodes.empty()) {
+        throw std::runtime_error("Cluster must have at least 1 node.");
+    }
+
+    double const common_bandwidth = nodes.front().network_bandwidth;
+
+    for (cluster::cluster_node const & node : nodes) {
+        if (node.network_bandwidth != common_bandwidth) {
+            std::cout << "WARNING: Not all cluster nodes have the same bandwidth\n";
+            break;
+        }
     }
 
     return nodes;

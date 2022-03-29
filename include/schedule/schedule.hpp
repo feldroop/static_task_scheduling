@@ -17,12 +17,15 @@
 namespace schedule {
 
 class schedule {
+    bool use_memory_requirements;
+
     // cluster node id/index -> list of scheduled tasks
     std::vector<node_schedule> node_schedules{};
     std::unordered_map<size_t, time_interval> task_intervals{};
 
 public:
-    schedule(cluster::cluster const & c) {
+    schedule(cluster::cluster const & c, bool const use_memory_requirements_) 
+        : use_memory_requirements{use_memory_requirements_} {
         for (cluster::cluster_node const & node : c) {
             node_schedules.emplace_back(node);
         }
@@ -53,8 +56,12 @@ public:
     ) {
         workflow::task const & t = w.get_task(t_id);
 
-        auto has_enough_memory = [&t] (node_schedule const & node_s) {
-            return node_s.get_node().memory >= t.memory_requirement;
+        auto has_enough_memory = [this, &t] (node_schedule const & node_s) {
+            if (use_memory_requirements) {
+                return node_s.get_node().memory >= t.memory_requirement;
+            } else {
+                return true;
+            }
         };
 
         auto earliest_finish_time_of_node = [this, &w, &t] (node_schedule & node_s) {
@@ -182,12 +189,10 @@ private:
             return 0.0;
         }
 
-        double const node_bandwidth0 = node_schedules.at(node_id0).get_node().network_bandwidth;
-        double const node_bandwidth1 = node_schedules.at(node_id1).get_node().network_bandwidth;
+        // for now, just use the bandwidth of node0 as they are assumed to be equal
+        double const bandwidth = node_schedules.at(node_id0).get_node().network_bandwidth;
 
-        double const common_bandwidth = std::min(node_bandwidth0, node_bandwidth1);
-
-        return data_transfer / common_bandwidth;
+        return data_transfer / bandwidth;
     }
 };
 

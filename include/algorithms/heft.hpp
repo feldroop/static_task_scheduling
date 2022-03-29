@@ -33,7 +33,8 @@ std::vector<workflow::task_id> task_ids_sorted_by_upward_ranks(
 
 schedule::schedule heft(
     cluster::cluster const & c, 
-    workflow::workflow const & w
+    workflow::workflow const & w,
+    bool const use_memory_requirements
 ) {
     auto const upward_ranks = w.all_upward_ranks(
         c.mean_performance(),
@@ -41,7 +42,7 @@ schedule::schedule heft(
     );
 
     std::vector<size_t> const priority_list = task_ids_sorted_by_upward_ranks(upward_ranks);
-    schedule::schedule s(c);
+    schedule::schedule s(c, use_memory_requirements);
 
     for (workflow::task_id const t_id : priority_list) {
         s.insert_into_best_eft_node_schedule(t_id, w);

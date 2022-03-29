@@ -15,11 +15,12 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
 
     auto cluster_option = required("-c", "--cluster") & value("cluster_file", args.cluster_input);
     auto task_bags_option = required("-t", "--tasks") & value("tasks_file", args.task_bag_input);
-    auto dependency_option = required("-d", "--dependencies") & value("dependencies_file", args.dependency_input);
+    auto dependency_option = option("-d", "--dependencies") & value("dependencies_file", args.dependency_input);
 
     auto output_option = option("-o", "--output") & value("output_file", args.output);
-    auto verbose_option = option("-v", "--verbose")
-        .set(args.verbose);
+    auto verbose_option = option("-v", "--verbose").set(args.verbose);
+
+    auto use_memory_option = option("-m", "--use-memory-requirements").set(args.use_memory_requirements);
 
     std::string const cluster_doc = (
         "File in .csv format that describes the cluster architecture. "
@@ -40,6 +41,10 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
     std::string const verbosity_doc = (
         "If given, all metrics and the full solution are printed to the command line."
     );
+    std::string const use_memory_doc = (
+        "If given, tasks are only scheduled onto cluster nodes with sufficient memory. "
+        "This is not part of the original HEFT and CPOP and is deactivated by default."
+    );
 
     auto cli = (
         "Input" % (
@@ -50,6 +55,9 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "Output" % (
             output_option % output_doc,
             verbose_option % verbosity_doc
+        ),
+        "Configuration" % (
+            use_memory_option % use_memory_doc
         )
     );
 
