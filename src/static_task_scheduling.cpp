@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <stdexcept>
 #include <vector>
@@ -8,6 +9,7 @@
 #include <io/handle_output.hpp>
 #include <io/parse_command_line.hpp>
 #include <io/read_csv.hpp>
+#include <io/read_workflow_xml.hpp>
 #include <schedule/schedule.hpp>
 #include <workflow/expand_task_bags.hpp>
 #include <workflow/topology/infer_dependencies.hpp>
@@ -42,7 +44,15 @@ int main(int argc, char *argv[]) {
         workflow::topology::topology const top = workflow::topology::from_string(args.topology);
         dependencies = workflow::topology::infer_dependencies(top, task_bags);
     } else {
-        dependencies = io::read_dependency_csv(args.dependency_input);
+        std::filesystem::path dependency_path(args.dependency_input);
+
+        if (dependency_path.extension() == ".csv") {
+            dependencies = io::read_dependency_csv(args.dependency_input);
+        } else if (dependency_path.extension() == ".xml") {
+            dependencies = io::read_workflow_xml(args.dependency_input);
+        } else {
+            throw std::runtime_error("Could not infer file type of dependency file");
+        }
     }
     
     workflow::workflow const w(tasks, input_data_sizes, output_data_sizes, dependencies);

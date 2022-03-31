@@ -1,3 +1,6 @@
+[submodule "pugixml"]
+	path = lib/pugixml
+	url = https://github.com/zeux/pugixml/
 [submodule "csv"]
 	path = lib/csv
 	url = https://github.com/ben-strasser/fast-cpp-csv-parser

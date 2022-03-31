@@ -34,8 +34,10 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "memory and cardinality. "
     );
     std::string const dependency_doc = (
-        "File in .csv format that contains the dependencies for the workflow tasks. " 
-        "It should contain exactly the fields from_id and to_id."
+        "File that contains the dependencies for the workflow tasks. " 
+        "Can either be in csv format or in xml format. "
+        "A csv file should contain exactly the fields from_id and to_id. "
+        "An xml file should model the schema at https://pegasus.isi.edu/schema/dax-2.1.xsd."
     );
     std::string const topology_doc = (
         "Desired topology of the workflow. The dependencies will be inferred from the task bags "
