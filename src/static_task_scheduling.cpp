@@ -1,5 +1,6 @@
 #include <fstream>
 #include <stdexcept>
+#include <vector>
 
 #include <algorithms/algorithm.hpp>
 #include <algorithms/execute.hpp>
@@ -9,6 +10,8 @@
 #include <io/read_csv.hpp>
 #include <schedule/schedule.hpp>
 #include <workflow/expand_task_bags.hpp>
+#include <workflow/topology/infer_dependencies.hpp>
+#include <workflow/topology/topology.hpp>
 #include <workflow/workflow.hpp>
 
 int main(int argc, char *argv[]) {
@@ -33,7 +36,14 @@ int main(int argc, char *argv[]) {
     auto const task_bags = io::read_task_bag_csv(args.task_bag_input);
     auto const [tasks, input_data_sizes, output_data_sizes] = expand_task_bags(task_bags);
 
-    auto const dependencies = io::read_dependency_csv(args.dependency_input);
+    std::vector<workflow::dependency> dependencies;
+    
+    if (args.dependency_input.empty()) {
+        workflow::topology::topology const top = workflow::topology::from_string(args.topology);
+        dependencies = workflow::topology::infer_dependencies(top, task_bags);
+    } else {
+        dependencies = io::read_dependency_csv(args.dependency_input);
+    }
     
     workflow::workflow const w(tasks, input_data_sizes, output_data_sizes, dependencies);
     

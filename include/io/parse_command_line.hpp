@@ -15,7 +15,9 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
 
     auto cluster_option = required("-c", "--cluster") & value("cluster_file", args.cluster_input);
     auto task_bags_option = required("-t", "--tasks") & value("tasks_file", args.task_bag_input);
-    auto dependency_option = option("-d", "--dependencies") & value("dependencies_file", args.dependency_input);
+    
+    auto dependency_option = required("-d", "--dependencies") & value("dependencies_file", args.dependency_input);
+    auto topology_option = required("-t", "--topology") & value("topology", args.topology);
 
     auto output_option = option("-o", "--output") & value("output_file", args.output);
     auto verbose_option = option("-v", "--verbose").set(args.verbose);
@@ -35,6 +37,10 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "File in .csv format that contains the dependencies for the workflow tasks. " 
         "It should contain exactly the fields from_id and to_id."
     );
+    std::string const topology_doc = (
+        "Desired topology of the workflow. The dependencies will be inferred from the task bags "
+        "using this configuration. Must be one of: epigenome, cybershake, ligo or montage."
+    );
     std::string const output_doc = (
         "If given, the verbose output of this program is written to this file as plain text."
     );
@@ -50,15 +56,13 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "Input" % (
             cluster_option % cluster_doc,
             task_bags_option % task_bags_doc,
-            dependency_option % dependency_doc
+            (dependency_option % dependency_doc) | (topology_option % topology_doc)
         ),
         "Output" % (
             output_option % output_doc,
             verbose_option % verbosity_doc
         ),
-        "Configuration" % (
-            use_memory_option % use_memory_doc
-        )
+        (use_memory_option % use_memory_doc)
     );
 
     auto res = parse(argc, argv, cli);

@@ -4,6 +4,8 @@
 
 namespace workflow {
 
+using task_bag_id = size_t;
+
 struct task_bag {
     double const workload;
     double const input_data_size;
