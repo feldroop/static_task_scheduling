@@ -49,8 +49,15 @@ public:
         }
 
         for (dependency const & dep : dependencies) {
-            if (output_data_sizes.at(dep.from_id) != input_data_sizes.at(dep.to_id)) {
-                throw std::invalid_argument("Input/Output data sizes for a dependency don't match.");
+            double const output_data_size = output_data_sizes.at(dep.from_id);
+            double const input_data_size = input_data_sizes.at(dep.to_id);
+
+            if (output_data_size != input_data_size) {
+                std::stringstream out{};
+                out << "Input/Output data sizes for a dependency don't match. "
+                    << dep.from_id << " -> " << input_data_size <<  '/'
+                    << dep.to_id << " -> " << output_data_size;
+                throw std::invalid_argument(out.str());
             }
 
             bool const was_created = g.add_edge(

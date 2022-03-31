@@ -15,7 +15,7 @@ std::vector<workflow::dependency> read_workflow_xml(std::string const & filename
 
     pugi::xml_parse_result result = doc.load_file(filename.c_str());
     if (!result) {
-        throw std::runtime_error("Could not parse the file " + filename);
+        throw std::runtime_error("Could not open and parse the file " + filename);
     }
 
     std::unordered_map<std::string, size_t> to_internal_id;

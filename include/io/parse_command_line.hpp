@@ -37,11 +37,14 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "File that contains the dependencies for the workflow tasks. " 
         "Can either be in csv format or in xml format. "
         "A csv file should contain exactly the fields from_id and to_id. "
-        "An xml file should model the schema at https://pegasus.isi.edu/schema/dax-2.1.xsd."
+        "An xml file should model the schema at https://pegasus.isi.edu/schema/dax-2.1.xsd. "
+        "The files in xml format it is assumed that the jobs in the file are specified in a "
+        "level order of the DAG implied by the task bags."
     );
     std::string const topology_doc = (
         "Desired topology of the workflow. The dependencies will be inferred from the task bags "
-        "using this configuration. Must be one of: epigenome, cybershake, ligo or montage."
+        "using this configuration. Must be one of: epigenome, cybershake or ligo. "
+        "The montage workflow topology is not supported and must be read from a dependency file."
     );
     std::string const output_doc = (
         "If given, the verbose output of this program is written to this file as plain text."
