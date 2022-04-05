@@ -4,7 +4,7 @@
 
 namespace workflow {
 
-struct dependency {
+struct task_dependency {
     task_id const from_id;
     task_id const to_id;
 };

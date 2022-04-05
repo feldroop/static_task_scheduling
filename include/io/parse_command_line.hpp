@@ -17,7 +17,7 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
     auto task_bags_option = required("-t", "--tasks") & value("tasks_file", args.task_bag_input);
     
     auto dependency_option = required("-d", "--dependencies") & value("dependencies_file", args.dependency_input);
-    auto topology_option = required("-t", "--topology") & value("topology", args.topology);
+    auto topology_option = required("-p", "--topology") & value("topology", args.topology);
 
     auto output_option = option("-o", "--output") & value("output_file", args.output);
     auto verbose_option = option("-v", "--verbose").set(args.verbose);

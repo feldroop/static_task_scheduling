@@ -4,13 +4,13 @@
 #include <string>
 #include <unordered_map>
 
-#include <workflow/dependency.hpp>
+#include <workflow/task_dependency.hpp>
 
 #include <pugixml.hpp>
 
 namespace io {
 
-std::vector<workflow::dependency> read_workflow_xml(std::string const & filename) {
+std::vector<workflow::task_dependency> read_workflow_xml(std::string const & filename) {
     pugi::xml_document doc;
 
     pugi::xml_parse_result result = doc.load_file(filename.c_str());
@@ -27,7 +27,7 @@ std::vector<workflow::dependency> read_workflow_xml(std::string const & filename
         ++id;
     }
 
-    std::vector<workflow::dependency> dependencies;
+    std::vector<workflow::task_dependency> dependencies;
 
     for (pugi::xml_node const & child : doc.child("adag").children("child")) {
         std::string child_id = child.attribute("ref").as_string();

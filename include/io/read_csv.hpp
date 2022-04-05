@@ -11,7 +11,7 @@
 
 #include <cluster/cluster.hpp>
 #include <workflow/task_bag.hpp>
-#include <workflow/dependency.hpp>
+#include <workflow/task_dependency.hpp>
 
 namespace io {
 
@@ -62,16 +62,19 @@ std::vector<workflow::task_bag> read_task_bag_csv(std::string const & filename) 
 
     double workload, input_data_size, output_data_size, memory;
     size_t cardinality;
+    
+    workflow::task_bag_id id{0};
 
     while (in.read_row(workload, input_data_size, output_data_size, memory, cardinality)) {
-        task_bags.emplace_back(workload, input_data_size, output_data_size, memory, cardinality);
+        task_bags.emplace_back(id, workload, input_data_size, output_data_size, memory, cardinality);
+        ++id;
     }
 
     return task_bags;
 }
 
-std::vector<workflow::dependency> read_dependency_csv(std::string const & filename) {
-    std::vector<workflow::dependency> dependencies;
+std::vector<workflow::task_dependency> read_dependency_csv(std::string const & filename) {
+    std::vector<workflow::task_dependency> dependencies;
     MyCSVReader<2> in(filename);
 
     in.read_header(ignore_no_column, "from_id", "to_id");

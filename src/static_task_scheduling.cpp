@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     auto const task_bags = io::read_task_bag_csv(args.task_bag_input);
     auto const [tasks, input_data_sizes, output_data_sizes] = expand_task_bags(task_bags);
 
-    std::vector<workflow::dependency> dependencies;
+    std::vector<workflow::task_dependency> dependencies;
     
     if (args.dependency_input.empty()) {
         workflow::topology::topology const top = workflow::topology::from_string(args.topology);

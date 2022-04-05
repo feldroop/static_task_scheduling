@@ -10,8 +10,8 @@
 
 #include <util/di_graph.hpp>
 #include <util/timepoint.hpp>
-#include <workflow/dependency.hpp>
 #include <workflow/task.hpp>
+#include <workflow/task_dependency.hpp>
 
 namespace workflow {
 
@@ -31,7 +31,7 @@ public:
         std::vector<task> tasks,
         std::vector<double> input_data_sizes,
         std::vector<double> output_data_sizes,
-        std::vector<dependency> dependencies
+        std::vector<task_dependency> dependencies
     ) {
         if (
             tasks.size() != input_data_sizes.size()
@@ -48,7 +48,7 @@ public:
             g.add_vertex(t);
         }
 
-        for (dependency const & dep : dependencies) {
+        for (task_dependency const & dep : dependencies) {
             double const output_data_size = output_data_sizes.at(dep.from_id);
             double const input_data_size = input_data_sizes.at(dep.to_id);
 

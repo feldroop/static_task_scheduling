@@ -18,13 +18,13 @@ enum class bag_dependency {
     // the tasks from the target bag are divided as evenly as possible onto the tasks 
     // of the source bag such that each task in the target bag depends on a single
     // task in the source bag
-    divide,
+    distribute,
 
     // there are less tasks in the target bag than in the source bag and
     // the tasks from the source bag are divided as evenly as possible onto the tasks 
     // of the target bag such that each task in the source bag gives a dependency onto
     // a single task in the target bag
-    collect,
+    aggregate,
 
     // a non-trivial dependency pattern that is currently not supported
     complex
@@ -38,39 +38,46 @@ dependency_pattern to_dependency_pattern(topology const top) {
     switch (top) {
         case topology::epigenome:
             return {
-                {0, {{1, bag_dependency::divide}}},
+                {0, {{1, bag_dependency::distribute}}},
                 {1, {{2, bag_dependency::one_to_one}}},
                 {2, {{3, bag_dependency::one_to_one}}},
                 {3, {{4, bag_dependency::one_to_one}}},
-                {4, {{5, bag_dependency::collect}}},
+                {4, {{5, bag_dependency::aggregate}}},
                 {5, {{6, bag_dependency::one_to_one}}},
                 {6, {{7, bag_dependency::one_to_one}}}
             };
+
         case topology::cybershake:
+            // this is different than in the actual CyberShake workflow, because we
+            // can't model it using the task bags
             return {
-                {0, {{1, bag_dependency::divide}}},
-                {1, {{2, bag_dependency::collect}, {3, bag_dependency::one_to_one}}},
-                {3, {{4, bag_dependency::collect}}}
+                {0, {{1, bag_dependency::distribute}}},
+                {1, {{3, bag_dependency::one_to_one}}},
+                {2, {{3, bag_dependency::distribute}}},
+                {3, {{4, bag_dependency::aggregate}}}
             };
+
         case topology::ligo:
             return {
                 {0, {{1, bag_dependency::one_to_one}}},
-                {1, {{2, bag_dependency::collect}}},
-                {2, {{3, bag_dependency::divide}}},
+                {1, {{2, bag_dependency::aggregate}}},
+                {2, {{3, bag_dependency::distribute}}},
                 {3, {{4, bag_dependency::one_to_one}}},
-                {4, {{5, bag_dependency::collect}}}
+                {4, {{5, bag_dependency::aggregate}}}
             };
+
         case topology::montage:
             return {
                 {0, {{1, bag_dependency::complex}, {4, bag_dependency::one_to_one}}},
-                {1, {{2, bag_dependency::collect}}},
+                {1, {{2, bag_dependency::aggregate}}},
                 {2, {{3, bag_dependency::one_to_one}}},
-                {3, {{4, bag_dependency::divide}}},
-                {4, {{5, bag_dependency::collect}}},
+                {3, {{4, bag_dependency::distribute}}},
+                {4, {{5, bag_dependency::aggregate}}},
                 {5, {{6, bag_dependency::one_to_one}}},
                 {6, {{7, bag_dependency::one_to_one}}},
                 {7, {{8, bag_dependency::one_to_one}}}
             };
+
         default:
             throw std::runtime_error("No dependency pattern is known for this topology.");
     }

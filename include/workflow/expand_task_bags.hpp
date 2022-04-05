@@ -1,5 +1,6 @@
 #pragma once
 
+#include <numeric>
 #include <tuple>
 #include <vector>
 
@@ -28,6 +29,23 @@ unpacked_task_bags expand_task_bags(std::vector<task_bag> const & bags) {
     }
 
     return std::make_tuple(std::move(tasks), std::move(input_data_sizes), std::move(output_data_sizes));
+}
+
+// index of the returned vector is to task bag id to which the ids at that index belong
+std::vector<std::vector<task_id>> expand_task_bags_into_ids(std::vector<task_bag> const & bags) {
+    std::vector<std::vector<task_id>> ids(bags.size());
+
+    task_id first_id{0};
+
+    for (task_bag const & bag : bags) {
+        std::vector<task_id> & curr_ids = ids.at(bag.id);
+        curr_ids.resize(bag.cardinality);
+        std::iota(curr_ids.begin(), curr_ids.end(), first_id);
+
+        first_id += bag.cardinality;
+    }
+
+    return ids;
 }
 
 } // namespace workflow
