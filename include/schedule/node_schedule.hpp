@@ -6,6 +6,7 @@
 
 #include <cluster/cluster_node.hpp>
 #include <schedule/time_interval.hpp>
+#include <util/epsilon_compare.hpp>
 #include <util/timepoint.hpp>
 #include <workflow/workflow.hpp>
 
@@ -65,6 +66,29 @@ public:
 
     void insert(iterator const & it, time_interval const interval) {
         intervals.emplace(it, interval);
+    }
+
+    bool is_valid() const {
+        if (intervals.empty()) {
+            return true;
+        }
+
+        for (size_t i = 0; i < intervals.size(); ++i) {
+            // interval itself must be consistent
+            if (util::epsilon_greater(intervals[i].start, intervals[i].end)) {
+                return false;
+            }
+
+            // interval must end before the next
+            if (
+                i < intervals.size() - 1 
+                && util::epsilon_greater(intervals[i].end, intervals[i + 1].start)
+            ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     cluster::cluster_node const & get_node() const {

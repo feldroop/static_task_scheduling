@@ -129,6 +129,12 @@ public:
     }
 
     bool is_valid(workflow::workflow const & w) const {
+        for (node_schedule const & node_s : node_schedules) {
+            if (!node_s.is_valid()) {
+                return false;
+            }
+        }
+
         for (workflow::task const & t : w) {
             if (!task_intervals.contains(t.id)) {
                 return false;
@@ -136,8 +142,9 @@ public:
         }
         
         for (workflow::task const & t : w) {
+            time_interval const & curr_t_interval = task_intervals.at(t.id);
+            
             for (auto const & [neighbor_id, data_transfer] : w.get_task_incoming_edges(t.id)) {
-                time_interval const & curr_t_interval = task_intervals.at(t.id);
                 time_interval const & neighbor_interval = task_intervals.at(neighbor_id);
 
                 double const data_transfer_cost = get_data_transfer_cost(
@@ -147,7 +154,7 @@ public:
                 );
 
                 // epsilon for floating point comparison
-                if (!util::epsilon_less(neighbor_interval.end + data_transfer_cost, curr_t_interval.start)) {
+                if (util::epsilon_greater(neighbor_interval.end + data_transfer_cost, curr_t_interval.start)) {
                     return false;
                 }; 
             }
