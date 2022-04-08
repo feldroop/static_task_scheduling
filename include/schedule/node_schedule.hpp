@@ -46,7 +46,7 @@ public:
 
         if (curr_it == intervals.begin() && curr_it->start >= ready_time + computation_time) {
             // insertion possible at ready time before any other task on this node
-            return time_slot{computation_time, curr_it};
+            return time_slot{ready_time + computation_time, curr_it};
         }
 
         while (true) {
