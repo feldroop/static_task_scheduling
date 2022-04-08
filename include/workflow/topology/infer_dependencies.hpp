@@ -11,6 +11,70 @@
 
 namespace workflow::topology {
 
+void expand_one_to_one_dependency(
+    std::vector<task_dependency> & task_dependencies,
+    std::vector<task_id> const & source_bag_task_ids,
+    std::vector<task_id> const & target_bag_task_ids
+) {
+    for (size_t i = 0; i < source_bag_task_ids.size(); ++i) {
+        task_dependencies.emplace_back(source_bag_task_ids.at(i), target_bag_task_ids.at(i));
+    }
+}
+
+void expand_distribute_dependency(
+    std::vector<task_dependency> & task_dependencies,
+    std::vector<task_id> const & source_bag_task_ids,
+    std::vector<task_id> const & target_bag_task_ids
+) {
+    size_t const ratio = target_bag_task_ids.size() / source_bag_task_ids.size();
+    size_t remainder = target_bag_task_ids.size() % source_bag_task_ids.size();
+    // <remainder> many tasks cannot be evenly disrtibuted using the ratio <ratio>
+    // hence the first <remainder> many source bag tasks get one more outgoing dependency
+
+    size_t first_target_task_id{0};
+
+    for (task_id const & source_task_id : source_bag_task_ids) {
+        size_t const num_outgoing = (remainder == 0) ? ratio : ratio + 1;
+
+        for (size_t i = 0; i < num_outgoing; ++i) {
+            task_id const & target_task_id = target_bag_task_ids.at(first_target_task_id + i);
+            task_dependencies.emplace_back(source_task_id, target_task_id);
+        }
+
+        first_target_task_id += num_outgoing;
+        if (remainder != 0) {
+            --remainder;
+        }
+    }
+}
+
+void expand_aggregate_dependency(
+    std::vector<task_dependency> & task_dependencies,
+    std::vector<task_id> const & source_bag_task_ids,
+    std::vector<task_id> const & target_bag_task_ids
+) {
+    size_t const ratio = source_bag_task_ids.size() / target_bag_task_ids.size();
+    size_t remainder = source_bag_task_ids.size() % target_bag_task_ids.size();
+    // <remainder> many tasks cannot be evenly distributed using the ratio <ratio>
+    // hence the first <remainder> many target bag tasks get one more incoming dependency
+
+    size_t first_source_task_id{0};
+
+    for (task_id const & target_task_id : target_bag_task_ids) {
+        size_t const num_incoming = (remainder == 0) ? ratio : ratio + 1;
+
+        for (size_t i = 0; i < num_incoming; ++i) {
+            task_id const & source_task_id = source_bag_task_ids.at(first_source_task_id + i);
+            task_dependencies.emplace_back(source_task_id, target_task_id);
+        }
+
+        first_source_task_id += num_incoming;
+        if (remainder != 0) {
+            --remainder;
+        }
+    }
+}
+
 void expand_bag_dependency(
     bag_dependency bag_dep,
     std::vector<task_dependency> & task_dependencies,
@@ -26,9 +90,7 @@ void expand_bag_dependency(
                 throw std::runtime_error("Bags with one-to-one dependency must have equal cardinaliy.");
             }
 
-            for (size_t i = 0; i < source_cardinality; ++i) {
-                task_dependencies.emplace_back(source_bag_task_ids.at(i), target_bag_task_ids.at(i));
-            }
+            expand_one_to_one_dependency(task_dependencies, source_bag_task_ids, target_bag_task_ids);
         }
         break;
 
@@ -40,26 +102,7 @@ void expand_bag_dependency(
                 );
             }
 
-            size_t const ratio = target_cardinality / source_cardinality;
-            size_t remainder = target_cardinality % source_cardinality;
-            // <remainder> many tasks cannot be evenly disrtibuted using the ratio <ratio>
-            // hence the first <remainder> many source bag tasks get one more outgoing dependency
-
-            size_t first_target_task_id{0};
-
-            for (task_id const & source_task_id : source_bag_task_ids) {
-                size_t const num_outgoing = (remainder == 0) ? ratio : ratio + 1;
-
-                for (size_t i = 0; i < num_outgoing; ++i) {
-                    task_id const & target_task_id = target_bag_task_ids.at(first_target_task_id + i);
-                    task_dependencies.emplace_back(source_task_id, target_task_id);
-                }
-
-                first_target_task_id += num_outgoing;
-                if (remainder != 0) {
-                    --remainder;
-                }
-            }
+            expand_distribute_dependency(task_dependencies, source_bag_task_ids, target_bag_task_ids);
         }
         break;
 
@@ -71,26 +114,7 @@ void expand_bag_dependency(
                 );
             }
 
-            size_t const ratio = source_cardinality / target_cardinality;
-            size_t remainder = source_cardinality % target_cardinality;
-            // <remainder> many tasks cannot be evenly distributed using the ratio <ratio>
-            // hence the first <remainder> many target bag tasks get one more incoming dependency
-
-            size_t first_source_task_id{0};
-
-            for (task_id const & target_task_id : target_bag_task_ids) {
-                size_t const num_incoming = (remainder == 0) ? ratio : ratio + 1;
-
-                for (size_t i = 0; i < num_incoming; ++i) {
-                    task_id const & source_task_id = source_bag_task_ids.at(first_source_task_id + i);
-                    task_dependencies.emplace_back(source_task_id, target_task_id);
-                }
-
-                first_source_task_id += num_incoming;
-                if (remainder != 0) {
-                    --remainder;
-                }
-            }
+            expand_aggregate_dependency(task_dependencies, source_bag_task_ids, target_bag_task_ids);
         }
         break;
 
