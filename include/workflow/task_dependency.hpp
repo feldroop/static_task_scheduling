@@ -5,8 +5,9 @@
 namespace workflow {
 
 struct task_dependency {
-    task_id const from_id;
-    task_id const to_id;
+    // these cannot be const for copy/move assignment
+    task_id from_id;
+    task_id to_id;
 };
 
 } // namespace workflow

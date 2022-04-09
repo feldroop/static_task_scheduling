@@ -3,7 +3,6 @@
 #include <vector>
 
 #include <workflow/expand_task_bags.hpp>
-#include <workflow/task.hpp>
 #include <workflow/task_dependency.hpp>
 #include <workflow/task_bag.hpp>
 #include <workflow/topology/bag_dependency.hpp>
@@ -135,7 +134,7 @@ std::vector<task_dependency> infer_dependencies(topology const top, std::vector<
     dependency_pattern dep_pattern = to_dependency_pattern(top);
 
     std::vector<task_dependency> task_dependencies{};
-    std::vector<std::vector<task_id>> task_ids_per_bag = expand_task_bags_into_ids(bags);
+    auto const task_ids_per_bag = expand_task_bags_into_ids(bags);
 
     for (task_bag const & source_bag : bags) {
         if (!dep_pattern.contains(source_bag.id)) {

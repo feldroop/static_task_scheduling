@@ -43,7 +43,7 @@ dependency_pattern to_dependency_pattern(topology const top) {
                 {2, {{3, bag_dependency::one_to_one}}},
                 {3, {{4, bag_dependency::one_to_one}}},
                 {4, {{5, bag_dependency::aggregate}}},
-                {5, {{6, bag_dependency::one_to_one}}},
+                {5, {{6, bag_dependency::aggregate}}}, // could also be one_to_one from the paper
                 {6, {{7, bag_dependency::one_to_one}}}
             };
 
@@ -77,6 +77,9 @@ dependency_pattern to_dependency_pattern(topology const top) {
                 {6, {{7, bag_dependency::one_to_one}}},
                 {7, {{8, bag_dependency::one_to_one}}}
             };
+
+        case topology::none:
+            throw std::runtime_error("In this mode, a topology must be supplied on the comand line.");
 
         default:
             throw std::runtime_error("No dependency pattern is known for this topology.");
