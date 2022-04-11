@@ -1,0 +1,6 @@
+# A small cluster ///4 node with 2-16 cores
+bandwidth, performance, memory, num_cores
+125, 150, 50, 2
+125, 50, 100, 16
+125, 100, 200, 10
+125, 200, 850, 8

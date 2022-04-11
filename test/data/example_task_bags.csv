@@ -1,0 +1,6 @@
+# A small number of example tasks bags
+workload, input_data_size, output_data_size, memory, cardinality
+1000, 10, 20, 1, 1
+500, 20, 40, 1, 4
+400, 40, 50, 1, 4
+800, 50, 10, 1, 1
