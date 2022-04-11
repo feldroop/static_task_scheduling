@@ -1,6 +1,6 @@
 # static_task_scheduling
 
-![example event parameter](https://github.com/Felix-Droop/static_task_scheduling/actions/workflows/cmake.yml/badge.svg?event=push)
+[![CMake](https://github.com/Felix-Droop/static_task_scheduling/actions/workflows/cmake.yml/badge.svg?branch=main)](https://github.com/Felix-Droop/static_task_scheduling/actions/workflows/cmake.yml)
 
 Implementations of different static task scheduling algorithms to evaluate a proposed MILP based model for this problem.
 
