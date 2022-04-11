@@ -11,7 +11,7 @@ Implementations of different static task scheduling algorithms to evaluate a pro
 
 ## Setup
 
-* Requires CMake and a C++20 capable compiler
+* Requires CMake and a C++20 capable compiler with ranges support (e.g. `g++-10` or newer)
 * Example of build and run on linux:
 ```
 git clone --recurse-submodules https://github.com/Felix-Droop/static_task_scheduling
