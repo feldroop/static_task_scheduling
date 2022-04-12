@@ -7,7 +7,6 @@
 #include <io/handle_output.hpp>
 #include <io/parse_command_line.hpp>
 #include <io/read_dependency_file.hpp>
-#include <schedule/schedule.hpp>
 #include <workflow/expand_task_bags.hpp>
 #include <workflow/topology/infer_dependencies.hpp>
 #include <workflow/topology/remove_bag_dependencies.hpp>
