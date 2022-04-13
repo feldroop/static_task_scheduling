@@ -1,0 +1,5 @@
+# A small example cluster
+bandwidth, performance, memory, num_cores
+10, 10, 1000, 1
+10, 5, 1000, 1
+10, 20, 1000, 1
