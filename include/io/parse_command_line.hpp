@@ -73,7 +73,8 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
     auto res = parse(argc, argv, cli);
 
     if(res.any_error()) {
-        std::cout << make_man_page(cli, "static_task_scheduling");
+        std::cout << "ERROR: Invalid command line arguments.\n"
+            << make_man_page(cli, "static_task_scheduling");
         return std::nullopt;
     }
 
