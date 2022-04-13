@@ -1,7 +1,12 @@
 # static_task_scheduling
 
-[![Build](https://img.shields.io/github/workflow/status/Felix-Droop/static_task_scheduling/CMake?style=flat-square)](https://github.com/Felix-Droop/static_task_scheduling/actions/workflows/cmake.yml)
-[![License](https://img.shields.io/github/license/Felix-Droop/static_task_scheduling?style=flat-square)](https://github.com/Felix-Droop/static_task_scheduling/blob/main/LICENSE)
+[build_badge]: https://img.shields.io/github/workflow/status/Felix-Droop/static_task_scheduling/CMake?style=flat-square
+[build_workflow]: https://github.com/Felix-Droop/static_task_scheduling/actions/workflows/cmake.yml
+[license_badge]: https://img.shields.io/github/license/Felix-Droop/static_task_scheduling?style=flat-square
+[license_workflow]: https://github.com/Felix-Droop/static_task_scheduling/blob/main/LICENSE
+
+[![Build][build_badge]][build_workflow]
+[![License][license_badge]][license_workflow]
 
 Implementations of different static task scheduling algorithms to evaluate a proposed MILP based model for this problem.
 
