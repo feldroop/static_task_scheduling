@@ -89,6 +89,8 @@ cluster::node_id best_fitting_node(
     return c.best_performance_node(critical_path_memory_requirement);
 }
 
+// Critical path on processor
+
 // Running time analysis:
 // TODO
 

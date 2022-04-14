@@ -5,7 +5,9 @@
 
 #include <algorithms/algorithm.hpp>
 #include <algorithms/cpop.hpp>
+#include <algorithms/dbca.hpp>
 #include <algorithms/heft.hpp>
+#include <algorithms/rbca.hpp>
 #include <cluster/cluster.hpp>
 #include <io/command_line_arguments.hpp>
 #include <io/handle_output.hpp>
@@ -26,6 +28,10 @@ void execute(
         case algorithm::HEFT: s = algorithms::heft(c, w, args.use_memory_requirements);
         break;
         case algorithm::CPOP: s = algorithms::cpop(c, w, args.use_memory_requirements);
+        break;
+        case algorithm::RBCA: s = algorithms::rbca(c, w, args.use_memory_requirements);
+        break; 
+        case algorithm::DBCA: s = algorithms::dbca(c, w, args.use_memory_requirements);
         break;
     }
 

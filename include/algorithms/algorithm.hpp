@@ -5,7 +5,7 @@
 namespace algorithms {
 
 enum class algorithm {
-    HEFT, CPOP
+    HEFT, CPOP, RBCA, DBCA
 };
 
 std::string to_string(algorithm const algo) {
@@ -16,6 +16,9 @@ std::string to_string(algorithm const algo) {
         break;
         case algorithm::CPOP: s = "CPOP";
         break;
+        case algorithm::RBCA: s = "RBCA";
+        break;
+        case algorithm::DBCA: s = "DBCA";
     }
 
     return s;

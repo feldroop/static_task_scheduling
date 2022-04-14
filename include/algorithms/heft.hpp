@@ -25,6 +25,8 @@ std::vector<workflow::task_id> task_ids_sorted_by_upward_ranks(
     return priority_list;
 }
 
+// Heterogenous earliest finish time
+
 // Running time analysis:
 // input: cluster C, workflow-DAG W = (V,E)
 // O(|V|^2 * |C|) worst case, however in practice ofter O(|V| * log(|V|) * |C|) or O(|E| * |C|)

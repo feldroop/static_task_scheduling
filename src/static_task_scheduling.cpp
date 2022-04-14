@@ -57,5 +57,9 @@ int main(int argc, char *argv[]) {
     
     algorithms::execute(args, c, w, algorithms::algorithm::CPOP);
 
+    algorithms::execute(args, c, w, algorithms::algorithm::RBCA);
+
+    algorithms::execute(args, c, w, algorithms::algorithm::DBCA);
+
     return 0;
 }
