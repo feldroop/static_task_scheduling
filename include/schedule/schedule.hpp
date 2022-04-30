@@ -122,7 +122,7 @@ public:
         out << "makespan: " << get_makespan() << '\n';
 
         if (is_valid.has_value()) {
-            out << "schedule " << (is_valid.value() ? "is " : "not ") << "valid\n";
+            out << "schedule " << (is_valid.value() ? "is " : "NOT ") << "valid\n";
         }
 
         return out.str();
