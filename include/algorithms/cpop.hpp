@@ -33,33 +33,44 @@ std::unordered_set<workflow::task_id> compute_critical_path(
 ) {
     // we don't enforce a single entry task and choose the independent task with the highest priority
     auto const & independent_task_ids = w.get_independent_task_ids();
-    auto const max_it = std::ranges::max_element(independent_task_ids, {}, [&task_priorities] (workflow::task_id const & t_id) {
-        return task_priorities.at(t_id);
-    });
+    
+    auto const max_it = std::ranges::max_element(independent_task_ids, 
+        [&task_priorities] (workflow::task_id const & t0_id, workflow::task_id const & t1_id) {
+            // this should be analogous to the std::less operator regarding priority (t0 < t1?)
+            // if the priorities are equal, then t0 has a smaller priority, if its id is larger
+            double const t0_priority = task_priorities.at(t0_id);
+            double const t1_priority = task_priorities.at(t1_id);
+
+            if (t0_priority == t1_priority) {
+                return t0_id > t1_id;
+            } else {
+                return t0_priority < t1_priority;
+            }
+        });
+
     // safe dereference because it is enforced that independent tasks exist
     double const critical_path_priority = task_priorities.at(*max_it);
     workflow::task_id curr_task_id = *max_it;
 
     std::unordered_set<workflow::task_id> critical_path{};
-    auto const is_on_critical_path = [&task_priorities, critical_path_priority] (workflow::task_id const & t_id) {
+    auto const has_critical_priority = [&task_priorities, critical_path_priority] (workflow::task_id const & t_id) {
         return util::epsilon_eq(task_priorities.at(t_id), critical_path_priority);
     };
 
     while (true) {
         critical_path.insert(curr_task_id);
 
-        auto const successor_tasks = w.get_task_outgoing_edges(curr_task_id)
+        auto critical_successor_task_ids = w.get_task_outgoing_edges(curr_task_id)
             | std::views::transform([] (auto const & edge) {
                 auto const & [neighbor_id, weight] = edge;
                 return neighbor_id;
-            });
+            })
+            | std::views::filter(has_critical_priority);
 
-        auto const next_it = std::ranges::find_if(
-            successor_tasks,
-            is_on_critical_path
-        );
+        // tie break using lowest id
+        auto const next_it = std::ranges::min_element(critical_successor_task_ids);
 
-        if (next_it == successor_tasks.end()) {
+        if (next_it == critical_successor_task_ids.end()) {
             break;
         }
 
@@ -113,6 +124,8 @@ void print_critical_path(
 // Running time analysis:
 // TODO
 
+// tie-breaking for critical path and priority queue: lower id task -> higher priority
+
 schedule::schedule cpop(
     cluster::cluster const & c,
     workflow::workflow const & w,
@@ -150,17 +163,15 @@ schedule::schedule cpop(
 
     struct task_priority_compare {
         bool operator() (prioritized_task const & t0, prioritized_task const & t1) const {
-            // TODO: tie-breaking behavior
+            // this should be analogous to the std::less operator regarding priority (t0 < t1?)
+            // if the priorities are equal, then t0 has a smaller priority, if its id is larger
+            if (t0.priority == t1.priority) {
+                return t0.id > t1.id;
+            }
 
-            // if (t0.priority == t1.priority) {
-            //     return t0.id < t1.id;
-            // }
-
-            // else {
-            //     return t0.priority < t1.priority;
-            // }
-            
-            return t0.priority < t1.priority;
+            else {
+                return t0.priority < t1.priority;
+            }
         }
     };
 
@@ -177,7 +188,7 @@ schedule::schedule cpop(
         auto [curr_t_id, priority, on_critical_path] = prio_q.top();
         prio_q.pop();
 
-        if (critical_path.contains(curr_t_id)) {
+        if (on_critical_path) {
             s.insert_into_node_schedule(curr_t_id, best_node, w);
         } else {
             s.insert_into_best_eft_node_schedule(curr_t_id, w);

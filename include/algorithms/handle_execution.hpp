@@ -62,7 +62,7 @@ void handle_execution(
 
     if (!args.verbose) {
         std::cout << algo_str << " makespan: " << sched.get_makespan() << ' '
-            << (valid ? "(" : "(NOT ") << "valid) -- cpu running time: " 
+            << (valid ? "(" : "(NOT ") << "valid) -- CPU running time: " 
             << format_clocks(cpu_time_clocks) << '\n';
     }
 }
