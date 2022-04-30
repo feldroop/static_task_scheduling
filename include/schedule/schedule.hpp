@@ -125,6 +125,8 @@ public:
             out << "schedule " << (is_valid.value() ? "is " : "NOT ") << "valid\n";
         }
 
+        out << '\n';
+
         return out.str();
     }
 

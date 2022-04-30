@@ -9,13 +9,10 @@
 
 namespace io {
 
-template<typename T, typename... Args>
-void handle_output(command_line_arguments const & args, T const & out_obj, Args&&... to_str_params) {
+void handle_output_str(command_line_arguments const & args, std::string const & out_str) {
     if (!args.verbose && args.output.empty()) {
         return;
     }
-
-    std::string out_str = out_obj.to_string(to_str_params...);
 
     if (args.verbose) {
         std::cout << out_str;
@@ -31,6 +28,13 @@ void handle_output(command_line_arguments const & args, T const & out_obj, Args&
 
         fout << out_str;
     }
+}
+
+template<typename T, typename... Args>
+void handle_output_obj(command_line_arguments const & args, T const & out_obj, Args&&... to_str_params) {
+    std::string out_str = out_obj.to_string(to_str_params...);
+
+    handle_output_str(args, out_str);
 }
 
 } // namespace io

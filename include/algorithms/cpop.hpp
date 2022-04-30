@@ -110,7 +110,7 @@ void print_critical_path(
 
     std::ranges::sort(critical_path_seq);
 
-    std::cout << "\nCPOP critical path: [ ";
+    std::cout << "CPOP -- Critical path: [ ";
 
     for (auto const task_id : critical_path_seq) {
         std::cout << task_id << ' ';
