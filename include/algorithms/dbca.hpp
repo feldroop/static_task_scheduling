@@ -14,7 +14,8 @@ namespace algorithms {
 schedule::schedule dbca(
     cluster::cluster const & c, 
     workflow::workflow const & w,
-    bool const use_memory_requirements
+    bool const use_memory_requirements,
+    [[maybe_unused]] bool const verbose
 ) {
     schedule::schedule s(c, use_memory_requirements);
     return s;

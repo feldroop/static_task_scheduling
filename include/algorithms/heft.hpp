@@ -36,7 +36,8 @@ std::vector<workflow::task_id> task_ids_sorted_by_upward_ranks(
 schedule::schedule heft(
     cluster::cluster const & c, 
     workflow::workflow const & w,
-    bool const use_memory_requirements
+    bool const use_memory_requirements,
+    [[maybe_unused]] bool const verbose
 ) {
     auto const upward_ranks = w.all_upward_ranks(
         c.mean_performance(),

@@ -21,7 +21,7 @@ std::unordered_map<workflow::task_id, double> compute_task_priorities(
     std::unordered_map<workflow::task_id, double> task_priorities{};
 
     for (auto const & [t_id, downward_rank] : downward_ranks) {
-        task_priorities.insert({t_id, downward_rank + upward_ranks.at(t_id)});
+        task_priorities.insert({ t_id, downward_rank + upward_ranks.at(t_id) });
     }
 
     return task_priorities;
@@ -81,12 +81,31 @@ cluster::node_id best_fitting_node(
 
     // in our input model, the critical path is simply scheduled on
     // the best node with sufficient memory if we want to use the memory requirements
-    auto critical_path_memories = critical_path 
+    auto critical_path_memories = critical_path
         | std::views::transform([&w] (workflow::task_id const & t_id) {
             return w.get_task(t_id).memory_requirement;
         });
     double const critical_path_memory_requirement = *std::ranges::min_element(critical_path_memories);
     return c.best_performance_node(critical_path_memory_requirement);
+}
+
+void print_critical_path(
+    std::unordered_set<workflow::task_id> const & critical_path
+) {
+    std::vector<workflow::task_id> critical_path_seq(
+        critical_path.begin(),
+        critical_path.end()
+    );
+
+    std::ranges::sort(critical_path_seq);
+
+    std::cout << "\nCPOP critical path: [ ";
+
+    for (auto const task_id : critical_path_seq) {
+        std::cout << task_id << ' ';
+    }
+
+    std::cout << "]\n\n";
 }
 
 // Critical path on processor
@@ -95,9 +114,10 @@ cluster::node_id best_fitting_node(
 // TODO
 
 schedule::schedule cpop(
-    cluster::cluster const & c, 
+    cluster::cluster const & c,
     workflow::workflow const & w,
-    bool const use_memory_requirements
+    bool const use_memory_requirements,
+    bool const verbose
 ) {
     auto const downward_ranks = w.all_downward_ranks(
         c.mean_performance(),
@@ -110,8 +130,12 @@ schedule::schedule cpop(
     );
 
     auto const task_priorities = compute_task_priorities(downward_ranks, upward_ranks);
-    
+
     auto const critical_path = compute_critical_path(w, task_priorities);
+
+    if (verbose) {
+        print_critical_path(critical_path);
+    }
 
     cluster::node_id const best_node = best_fitting_node(critical_path, w, c, use_memory_requirements);
 
@@ -126,6 +150,16 @@ schedule::schedule cpop(
 
     struct task_priority_compare {
         bool operator() (prioritized_task const & t0, prioritized_task const & t1) const {
+            // TODO: tie-breaking behavior
+
+            // if (t0.priority == t1.priority) {
+            //     return t0.id < t1.id;
+            // }
+
+            // else {
+            //     return t0.priority < t1.priority;
+            // }
+            
             return t0.priority < t1.priority;
         }
     };
@@ -133,12 +167,12 @@ schedule::schedule cpop(
     std::priority_queue<prioritized_task, std::vector<prioritized_task>, task_priority_compare> prio_q;
 
     for (workflow::task_id const & t_id : w.get_independent_task_ids()) {
-        prio_q.push({t_id, task_priorities.at(t_id), critical_path.contains(t_id)});
+        prio_q.push({ t_id, task_priorities.at(t_id), critical_path.contains(t_id) });
     }
 
     // copy incoming edges locally to modify to identify new independent tasks
     auto temp_incoming_edges = w.get_all_incoming_edges();
-    
+
     while (!prio_q.empty()) {
         auto [curr_t_id, priority, on_critical_path] = prio_q.top();
         prio_q.pop();
@@ -146,7 +180,7 @@ schedule::schedule cpop(
         if (critical_path.contains(curr_t_id)) {
             s.insert_into_node_schedule(curr_t_id, best_node, w);
         } else {
-            s.insert_into_best_eft_node_schedule(curr_t_id, w); 
+            s.insert_into_best_eft_node_schedule(curr_t_id, w);
         }
 
         for (auto const & [neighbor_id, weight] : w.get_task_outgoing_edges(curr_t_id)) {
@@ -157,8 +191,8 @@ schedule::schedule cpop(
 
             if (temp_incoming_edges.at(neighbor_id).empty()) {
                 prio_q.push({
-                    neighbor_id, 
-                    task_priorities.at(neighbor_id), 
+                    neighbor_id,
+                    task_priorities.at(neighbor_id),
                     critical_path.contains(neighbor_id)
                 });
             }
