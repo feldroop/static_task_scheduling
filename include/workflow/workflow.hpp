@@ -17,12 +17,13 @@ namespace workflow {
 
 class workflow {
 public:
-    using iterator = di_graph<task, double>::vertex_iterator;
+    using iterator = util::di_graph<task, double>::vertex_iterator;
 
 private:
-    di_graph<task, double> g;
+    util::di_graph<task, double> g;
     std::vector<task_id> topological_task_order;
     std::vector<task_id> independent_task_ids;
+    std::vector<std::vector<task_id>> const task_ids_per_bag;
 
 public:
     // create a DAG workflow represetation based on the input specifications
@@ -31,8 +32,9 @@ public:
         std::vector<task> tasks,
         std::vector<double> input_data_sizes,
         std::vector<double> output_data_sizes,
-        std::vector<task_dependency> dependencies
-    ) {
+        std::vector<task_dependency> dependencies,
+        std::vector<std::vector<task_id>> const task_ids_per_bag_
+    ) : task_ids_per_bag(std::move(task_ids_per_bag_)) {
         if (
             tasks.size() != input_data_sizes.size()
             || tasks.size() != output_data_sizes.size()
@@ -160,6 +162,10 @@ public:
         return independent_task_ids;
     }
 
+    std::vector<std::vector<task_id>> const & get_task_ids_per_bag() const {
+        return task_ids_per_bag;
+    }
+
     std::unordered_map<task_id, double> const & get_task_incoming_edges(task_id const t_id) const {
         return g.get_incoming_edges(t_id);
     }
@@ -168,11 +174,11 @@ public:
         return g.get_outgoing_edges(t_id);
     }
 
-    di_graph<task, double>::weight_matrix const & get_all_incoming_edges() const {
+    util::di_graph<task, double>::weight_matrix const & get_all_incoming_edges() const {
         return g.get_all_incoming_edges();
     }
 
-    di_graph<task, double>::weight_matrix const & get_all_outgoing_edges() const {
+    util::di_graph<task, double>::weight_matrix const & get_all_outgoing_edges() const {
         return g.get_all_outgoing_edges();
     }
 

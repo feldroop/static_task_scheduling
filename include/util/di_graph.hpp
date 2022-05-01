@@ -6,6 +6,8 @@
 #include <unordered_set>
 #include <vector>
 
+namespace util {
+
 // simple directed graph, no delete functionality
 // implemented using a hashmap based sparse adjacency matrix
 
@@ -126,3 +128,5 @@ public:
         return topological_order;
     }
 };
+
+} // namespace util

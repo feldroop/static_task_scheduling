@@ -38,22 +38,26 @@ int main(int argc, char * argv[]) {
 
     auto const task_bags = io::read_task_bag_csv(args.task_bag_input);
     auto const [tasks, input_data_sizes, output_data_sizes] = expand_task_bags(task_bags);
+    auto const task_ids_per_bag = expand_task_bags_into_ids(task_bags);
 
     workflow::topology::topology const top = workflow::topology::from_string(args.topology);
-    std::vector<workflow::task_dependency> dependencies;
-
-    if (args.dependency_input.empty()) {
-        dependencies = workflow::topology::infer_dependencies(top, task_bags);
-    } else {
-        dependencies = io::read_dependency_file(args.dependency_input);
-    }
+    std::vector<workflow::task_dependency> dependencies = 
+        args.dependency_input.empty() ?
+            workflow::topology::infer_dependencies(top, task_bags, task_ids_per_bag)
+            : io::read_dependency_file(args.dependency_input);
 
     if (top == workflow::topology::topology::montage) {
         // remove specific edges from the workflow which our model can't handle
         workflow::topology::remove_bag_dependencies(dependencies, 0, 4, task_bags);
     }
 
-    workflow::workflow const w(tasks, input_data_sizes, output_data_sizes, dependencies);
+    workflow::workflow const w(
+        tasks, 
+        input_data_sizes, 
+        output_data_sizes, 
+        dependencies, 
+        std::move(task_ids_per_bag)
+    );
 
     io::handle_output_obj(args, w, c.best_performance());
 

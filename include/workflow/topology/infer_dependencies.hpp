@@ -130,11 +130,14 @@ void expand_bag_dependency(
     }
 }
 
-std::vector<task_dependency> infer_dependencies(topology const top, std::vector<task_bag> const & bags) {
+std::vector<task_dependency> infer_dependencies(
+    topology const top, 
+    std::vector<task_bag> const & bags,
+    std::vector<std::vector<task_id>> const & task_ids_per_bag
+) {
     dependency_pattern dep_pattern = to_dependency_pattern(top);
 
     std::vector<task_dependency> task_dependencies{};
-    auto const task_ids_per_bag = expand_task_bags_into_ids(bags);
 
     for (task_bag const & source_bag : bags) {
         if (!dep_pattern.contains(source_bag.id)) {
