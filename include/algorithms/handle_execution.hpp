@@ -50,7 +50,7 @@ void handle_execution(
     workflow::workflow const & w
 ) {
     auto const func = algorithms::to_function(
-        algo, c, w, args.use_memory_requirements, args.verbose
+        algo, c, w, args
     );
 
     auto const [sched, cpu_time_clocks] = measure_execution(func);

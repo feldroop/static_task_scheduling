@@ -9,6 +9,7 @@
 #include <algorithms/heft.hpp>
 #include <algorithms/rbca.hpp>
 #include <cluster/cluster.hpp>
+#include <io/command_line_arguments.hpp>
 #include <schedule/schedule.hpp>
 #include <workflow/workflow.hpp>
 
@@ -45,21 +46,20 @@ std::function<schedule::schedule()> to_function(
     algorithm const algo,
     cluster::cluster const & c,
     workflow::workflow const & w,
-    bool const use_memory_requirements,
-    bool const verbose
+    io::command_line_arguments const & args
 ) {
     switch (algo) {
-        case algorithm::HEFT: return [&c, &w, use_memory_requirements, verbose] () {
-            return algorithms::heft(c, w, use_memory_requirements, verbose);
+        case algorithm::HEFT: return [&] () {
+            return algorithms::heft(c, w, args);
         };
-        case algorithm::CPOP: return [&c, &w, use_memory_requirements, verbose] () {
-            return algorithms::cpop(c, w, use_memory_requirements, verbose);
+        case algorithm::CPOP: return [&] () {
+            return algorithms::cpop(c, w, args);
         };
-        case algorithm::RBCA: return [&c, &w, use_memory_requirements, verbose] () {
-            return algorithms::rbca(c, w, use_memory_requirements, verbose);
+        case algorithm::RBCA: return [&] () {
+            return algorithms::rbca(c, w, args);
         };
-        case algorithm::DBCA: return [&c, &w, use_memory_requirements, verbose] () {
-            return algorithms::dbca(c, w, use_memory_requirements, verbose);
+        case algorithm::DBCA: return [&] () {
+            return algorithms::dbca(c, w, args);
         };
         default:
             throw std::runtime_error("Internal bug: unknown algorithm.");

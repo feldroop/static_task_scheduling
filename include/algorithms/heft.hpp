@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <cluster/cluster.hpp>
+#include <io/command_line_arguments.hpp>
 #include <schedule/schedule.hpp>
 #include <workflow/workflow.hpp>
 
@@ -36,8 +37,7 @@ std::vector<workflow::task_id> task_ids_sorted_by_upward_ranks(
 schedule::schedule heft(
     cluster::cluster const & c, 
     workflow::workflow const & w,
-    bool const use_memory_requirements,
-    [[maybe_unused]] bool const verbose
+    io::command_line_arguments const & args
 ) {
     auto const upward_ranks = w.all_upward_ranks(
         c.mean_performance(),
@@ -45,7 +45,7 @@ schedule::schedule heft(
     );
 
     std::vector<size_t> const priority_list = task_ids_sorted_by_upward_ranks(upward_ranks);
-    schedule::schedule s(c, use_memory_requirements);
+    schedule::schedule s(c, args.use_memory_requirements);
 
     for (workflow::task_id const t_id : priority_list) {
         s.insert_into_best_eft_node_schedule(t_id, w);

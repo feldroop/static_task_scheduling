@@ -3,11 +3,14 @@
 #include <algorithm>
 #include <queue>
 #include <ranges>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 #include <cluster/cluster.hpp>
+#include <io/command_line_arguments.hpp>
+#include <io/handle_output.hpp>
 #include <schedule/schedule.hpp>
 #include <util/epsilon_compare.hpp>
 #include <workflow/workflow.hpp>
@@ -100,7 +103,7 @@ cluster::node_id best_fitting_node(
     return c.best_performance_node(critical_path_memory_requirement);
 }
 
-void print_critical_path(
+std::string critical_path_to_string(
     std::unordered_set<workflow::task_id> const & critical_path
 ) {
     std::vector<workflow::task_id> critical_path_seq(
@@ -110,13 +113,16 @@ void print_critical_path(
 
     std::ranges::sort(critical_path_seq);
 
-    std::cout << "CPOP -- Critical path: [ ";
+    std::stringstream out;
+    out << "CPOP -- Critical path: [ ";
 
     for (auto const task_id : critical_path_seq) {
-        std::cout << task_id << ' ';
+        out << task_id << ' ';
     }
 
-    std::cout << "]\n\n";
+    out << "]\n\n";
+
+    return out.str();
 }
 
 // Critical path on processor
@@ -129,8 +135,7 @@ void print_critical_path(
 schedule::schedule cpop(
     cluster::cluster const & c,
     workflow::workflow const & w,
-    bool const use_memory_requirements,
-    bool const verbose
+    io::command_line_arguments const & args
 ) {
     auto const downward_ranks = w.all_downward_ranks(
         c.mean_performance(),
@@ -146,13 +151,11 @@ schedule::schedule cpop(
 
     auto const critical_path = compute_critical_path(w, task_priorities);
 
-    if (verbose) {
-        print_critical_path(critical_path);
-    }
+    io::handle_output_str(args, critical_path_to_string(critical_path));
 
-    cluster::node_id const best_node = best_fitting_node(critical_path, w, c, use_memory_requirements);
+    cluster::node_id const best_node = best_fitting_node(critical_path, w, c, args.use_memory_requirements);
 
-    schedule::schedule s(c, use_memory_requirements);
+    schedule::schedule s(c, args.use_memory_requirements);
 
     struct prioritized_task {
         // members can't be const because the priority queue needs this to be moveable

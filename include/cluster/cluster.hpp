@@ -25,6 +25,17 @@ public:
     : nodes(std::move(nodes_)) 
     {}
 
+    std::vector<node_id> node_ids_sorted_by_performance_descending() const {
+        std::vector<node_id> node_ids(nodes.size());
+        std::iota(node_ids.begin(), node_ids.end(), 0);
+
+        std::ranges::sort(node_ids, std::ranges::greater(), [this] (node_id const & n_id) {
+            return nodes.at(n_id).performance();
+        });
+
+        return node_ids;
+    }
+
     node_id best_performance_node(double const memory_requirement = 0.0) const {
         auto valid_nodes = nodes 
             | std::views::filter([memory_requirement] (cluster_node const & node) {

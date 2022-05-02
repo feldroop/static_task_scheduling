@@ -2,8 +2,6 @@
 
 #include <string>
 
-#include <clipp.h>
-
 namespace io {
 
 struct command_line_arguments {
