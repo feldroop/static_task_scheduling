@@ -82,14 +82,14 @@ public:
     }
 };
 
-workflow::task_id find_most_correlated_task(
-    workflow::task_id const curr_t_id,
-    std::set<workflow::task_id> const & remaining_task_ids,
-    dependency_correlation_matrix const & cor
-) {
-    // TODO
-    return 0;
-}
+// workflow::task_id find_most_correlated_task(
+//     workflow::task_id const curr_t_id,
+//     std::set<workflow::task_id> const & remaining_task_ids,
+//     dependency_correlation_matrix const & cor
+// ) {
+//     // TODO
+//     return 0;
+// }
 
 std::vector<task_group> dependency_balanced_task_groups(
     workflow::workflow const & w,
@@ -146,7 +146,7 @@ schedule::schedule dbca(
 
     io::issue_warning(args, "DBCA not implemented yet");
 
-    // we use our bags instead of the levels as defined in the original paper 
+    // we use our bags instead of the levels as defined in the original paper
     // (makes sense, but is not always equal)
     auto const & task_ids_per_bag = w.get_task_ids_per_bag();
 
