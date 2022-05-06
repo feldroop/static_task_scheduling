@@ -9,6 +9,7 @@
 #include <io/handle_output.hpp>
 #include <io/parse_command_line.hpp>
 #include <io/read_dependency_file.hpp>
+#include <schedule/from_assignment.hpp>
 #include <workflow/expand_task_bags.hpp>
 #include <workflow/topology/infer_dependencies.hpp>
 #include <workflow/topology/remove_bag_dependencies.hpp>
@@ -63,6 +64,29 @@ int main(int argc, char * argv[]) {
 
     for (auto const & algo : algorithms::ALL) {
         algorithms::handle_execution(algo, args, c, w);
+    }
+
+    if (!args.task_to_node_assignment_input.empty()) {
+        auto const task_to_node_assignment = io::read_task_to_node_assignment_csv(
+            args.task_to_node_assignment_input, 
+            w.size(), 
+            c.size()
+        );
+
+        auto const sched = schedule::from_assignment(
+            task_to_node_assignment,
+            c,
+            w, 
+            args.use_memory_requirements
+        );
+
+        io::handle_computed_schedule_output(
+            "FROM_FILE",
+            "not measured",
+            args,
+            sched,
+            w
+        );
     }
 
     return 0;

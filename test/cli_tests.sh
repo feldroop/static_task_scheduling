@@ -4,6 +4,12 @@ $1/static_task_scheduling \
 -c ./data/example_cluster.csv \
 -t ./data/example_task_bags.csv \
 -d ./data/example_dependencies.csv
+echo "-------------------- Illustrative example with assignment --------------------"
+$1/static_task_scheduling \
+-c ./data/example_cluster.csv \
+-t ./data/example_task_bags.csv \
+-d ./data/example_dependencies.csv \
+-a ./data/example_assignment.csv
 echo "-------------------- Epigenome small --------------------"
 $1/static_task_scheduling \
 -c ./data/small_cluster.csv \
@@ -45,7 +51,7 @@ $1/static_task_scheduling \
 -c ./data/large_cluster.csv \
 -t ./data/montage_1000.csv \
 -d ./data/montage_1000.xml \
--p montage 
+-p montage
 echo "-------------------- Missing topology (should error) --------------------"
 $1/static_task_scheduling \
 -c ./data/small_cluster.csv \
@@ -65,3 +71,9 @@ $1/static_task_scheduling \
 -c ./data/small_cluster.csv \
 -t ./data/epigenome_100.csv \
 -p ligo 
+echo "-------------------- Mismatched asignment --------------------"
+$1/static_task_scheduling \
+-c ./data/small_cluster.csv \
+-t ./data/epigenome_100.csv \
+-p epigenome \
+-a ./data/example_assignment.csv

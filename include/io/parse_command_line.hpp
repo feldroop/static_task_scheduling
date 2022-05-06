@@ -19,6 +19,9 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
     auto dependency_option = option("-d", "--dependencies") & value("dependencies_file", args.dependency_input);
     auto topology_option = option("-p", "--topology") & value("topology", args.topology);
 
+    auto task_to_node_assignment_option = option("-a", "--assignment") 
+        & value("assignment_file", args.task_to_node_assignment_input);
+
     auto output_option = option("-o", "--output") & value("output_file", args.output);
     auto verbose_option = option("-v", "--verbose").set(args.verbose);
 
@@ -46,6 +49,11 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "be inferred from the task bags using this configuration. Must be one of: epigenome, cybershake, "
         "ligo or montage. For the montage workflow topology, a dependency file must be given."
     );
+    std::string const task_to_node_assignment_doc = (
+        "File in .csv format that describes an assignment of tasks to nodes. "
+        "It should contain exactly the fields task_number, node_number and is_assigned. "
+        "*_number fields are 1-based while *_id fields are 0-based."
+    );
     std::string const output_doc = (
         "If given, the verbose output of this program is written to this file as plain text."
     );
@@ -61,7 +69,8 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "Input" % (
             cluster_option % cluster_doc,
             task_bags_option % task_bags_doc,
-            (topology_option % topology_doc) & (dependency_option % dependency_doc)
+            (topology_option % topology_doc) & (dependency_option % dependency_doc),
+            task_to_node_assignment_option % task_to_node_assignment_doc
         ),
         "Output" % (
             output_option % output_doc,

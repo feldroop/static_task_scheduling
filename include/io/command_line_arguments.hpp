@@ -10,6 +10,8 @@ struct command_line_arguments {
     std::string dependency_input{};
     std::string topology{};
 
+    std::string task_to_node_assignment_input{};
+
     std::string output{};
     bool verbose{false};
 

@@ -55,18 +55,13 @@ void handle_execution(
 
     auto const [sched, cpu_time_clocks] = measure_execution(func);
 
-    std::string const algo_str = algorithms::to_string(algo);
-    bool const valid = sched.is_valid(w);
-    std::string const formatted_cpu_time =  format_clocks(cpu_time_clocks);
-
-    io::handle_output_obj(args, sched, algo_str, valid);
-    io::handle_output_str(args, algo_str + " -- CPU running time: " + formatted_cpu_time + "\n\n");
-
-    if (!args.verbose) {
-        std::cout << algo_str << " makespan: " << sched.get_makespan() << ' '
-            << (valid ? "(" : "(NOT ") << "valid) -- CPU running time: " 
-            << formatted_cpu_time << '\n';
-    }
+    io::handle_computed_schedule_output(
+        algorithms::to_string(algo),
+        format_clocks(cpu_time_clocks),
+        args,
+        sched,
+        w
+    );
 }
 
 } // namespace algorithms
