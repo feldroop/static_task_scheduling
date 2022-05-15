@@ -7,3 +7,6 @@
 [submodule "clipp"]
 	path = lib/clipp
 	url = https://github.com/muellan/clipp
+[submodule "tabulate"]
+	path = lib/tabulate
+	url = https://github.com/p-ranav/tabulate

@@ -23,12 +23,18 @@ set_target_properties (csv PROPERTIES LINKER_LANGUAGE CXX)
 # dependency: pugixml
 add_subdirectory (lib/pugixml)
 
+# dependency: tabulate
+add_library (tabulate STATIC lib/tabulate/single_include/tabulate/tabulate.hpp)
+set_target_properties (tabulate PROPERTIES LINKER_LANGUAGE CXX)
+
 # target executable
 add_executable (static_task_scheduling src/static_task_scheduling.cpp)
 
 target_include_directories (static_task_scheduling PRIVATE include)
 target_include_directories (static_task_scheduling PRIVATE lib/csv)
+target_include_directories (static_task_scheduling PRIVATE lib/tabulate/single_include/tabulate)
 
 target_link_libraries (static_task_scheduling clipp::clipp)
 target_link_libraries (static_task_scheduling csv)
+target_link_libraries (static_task_scheduling tabulate)
 target_link_libraries (static_task_scheduling pugixml::pugixml)
