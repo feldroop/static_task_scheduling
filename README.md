@@ -8,12 +8,13 @@
 [![Build][build_badge]][build_workflow]
 [![License][license_badge]][license_workflow]
 
-Implementations of different static task scheduling algorithms to evaluate a proposed MILP based model for this problem.
+Implementations of different static task scheduling algorithms to internally evaluate a proposed MILP based model for this problem.
 
 ## Implemented algorithms
 
-* Original HEFT (https://ieeexplore.ieee.org/document/993206)
-* Original CPOP (https://ieeexplore.ieee.org/document/993206)
+* Original HEFT
+* Original CPOP
+* A modification of the RBCA algorithm
 
 ## Setup
 
@@ -35,7 +36,8 @@ input workflow.
 ```
 SYNOPSIS
         static_task_scheduling -c <cluster_file> -t <tasks_file> [-p <topology>] [-d
-                               <dependencies_file>] [-o <output_file>] [-v] [-m]
+                               <dependencies_file>] [-a <assignment_file>] [-o <output_file>] [-v]
+                               [-m]
 
 OPTIONS
         Input
@@ -61,6 +63,11 @@ OPTIONS
                     https://pegasus.isi.edu/schema/dax-2.1.xsd. For files in xml format it is
                     assumed that the jobs in the file are specified in a level order of the DAG
                     implied by the task bags.
+
+            -a, --assignment <assignment_file>
+                    File in .csv format that describes an assignment of tasks to nodes. It should
+                    contain exactly the fields task_number, node_number and is_assigned. *_number
+                    fields are 1-based while *_id fields are 0-based.
 
         Output
             -o, --output <output_file>
@@ -103,4 +110,7 @@ OPTIONS
   ```
   ./static_task_scheduling -c cluster.csv -t task_bags.csv -d dependencies.csv -v -o output.txt
   ```
-
+* Add the schedule for a precomputed assignment to the output with `-a`:
+  ```
+  ./static_task_scheduling -c cluster.csv -t task_bags.csv -d dependencies.csv -a assignment.csv
+  ```
