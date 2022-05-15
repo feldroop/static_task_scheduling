@@ -164,6 +164,30 @@ public:
         return true;
     }
 
+    // node_communication[source][target] -> total sum of data transfer from source to target
+    std::vector<std::vector<double>> compute_node_communication_matrix(workflow::workflow const & w) const {
+        std::vector<std::vector<double>> node_communication(
+            node_schedules.size(),
+            std::vector<double>(node_schedules.size(), 0.0)
+        );
+        
+        for (workflow::task const & t : w) {
+            cluster::node_id const & source_node_id = task_intervals.at(t.id).node_id;
+            
+            for (auto const & [neighbor_id, data_transfer] : w.get_task_outgoing_edges(t.id)) {
+                cluster::node_id const & target_node_id = task_intervals.at(neighbor_id).node_id;
+
+                node_communication[source_node_id][target_node_id] += get_raw_data_transfer_cost(
+                    source_node_id, 
+                    target_node_id, 
+                    data_transfer
+                );
+            }
+        }
+
+        return node_communication;
+    }
+
 private:
     util::timepoint task_ready_time(
         workflow::task_id const t_id,
@@ -198,6 +222,15 @@ private:
             return 0.0;
         }
 
+        return get_raw_data_transfer_cost(node_id0, node_id1, data_transfer);
+    }
+
+    // data transfer cost without taking into account equal node ids
+    util::timepoint get_raw_data_transfer_cost(
+        cluster::node_id const node_id0,
+        [[maybe_unused]] cluster::node_id const node_id1,
+        double const data_transfer
+    ) const {
         // for now, just use the bandwidth of node0 as they are assumed to be equal
         double const bandwidth = node_schedules.at(node_id0).get_node().network_bandwidth;
 
