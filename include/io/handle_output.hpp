@@ -51,7 +51,7 @@ void print_node_communication_matrix(
     std::string const & algo_str
 ) {
     tabulate::Table outer_table;
-    outer_table.add_row({"Node communications in " + algo_str + " schedule:"});
+    outer_table.add_row({"Data transfer between nodes in " + algo_str + " schedule:"});
 
     tabulate::Table inner_table;
 
