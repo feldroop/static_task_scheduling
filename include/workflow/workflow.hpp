@@ -133,12 +133,13 @@ public:
         std::stringstream out;
 
         out << "########## Workflow: ##########\n";
-
+        out << "-- dependency format: (-> <target_task_id>, <data_transfer>)\n";
+        
         for (task const & t : g.get_all_vertices()) {
             out << "task " << t.id 
                 << ": workload " << t.workload
                 << ", memory " << t.memory_requirement
-                << ",\n\tdependencies:";
+                << ",\n\toutgoing dependencies:";
 
             for (auto const & [neighbor_id, data_transfer] : g.get_outgoing_edges(t.id)) {
                 out << " (-> " << neighbor_id << ", " << data_transfer << ')';
