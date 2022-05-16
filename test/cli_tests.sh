@@ -10,6 +10,19 @@ $1/static_task_scheduling \
 -t ./data/example_task_bags.csv \
 -d ./data/example_dependencies.csv \
 -a ./data/example_assignment.csv
+echo "-------------------- Illustrative example (only cpop) --------------------"
+$1/static_task_scheduling \
+-c ./data/example_cluster.csv \
+-t ./data/example_task_bags.csv \
+-d ./data/example_dependencies.csv \
+-s cpop
+echo "-------------------- Illustrative example (only assignment from file) --------------------"
+$1/static_task_scheduling \
+-c ./data/example_cluster.csv \
+-t ./data/example_task_bags.csv \
+-d ./data/example_dependencies.csv \
+-s none \
+-a ./data/example_assignment.csv
 echo "-------------------- Epigenome small --------------------"
 $1/static_task_scheduling \
 -c ./data/small_cluster.csv \
@@ -71,7 +84,7 @@ $1/static_task_scheduling \
 -c ./data/small_cluster.csv \
 -t ./data/epigenome_100.csv \
 -p ligo 
-echo "-------------------- Mismatched asignment --------------------"
+echo "-------------------- Mismatched asignment (should error) --------------------"
 $1/static_task_scheduling \
 -c ./data/small_cluster.csv \
 -t ./data/epigenome_100.csv \

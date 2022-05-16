@@ -63,21 +63,25 @@ void print_node_communication_matrix(
 
     inner_table.add_row(header);
 
-    size_t node_id{0};
+    size_t source_node_id{0};
     for (auto const & data_row : node_communication) {
         tabulate::Table::Row_t out_row;
+        out_row.push_back(std::to_string(source_node_id));
 
-        out_row.push_back(std::to_string(node_id));
-        ++node_id;
-
+        size_t target_node_id{0};
         for (auto const & data_transfer : data_row) {
             std::stringstream double_to_str;
             double_to_str << std::fixed << std::setprecision(2) << data_transfer;
 
-            out_row.push_back(double_to_str.str());
+            std::string out_str = source_node_id == target_node_id ? 
+                ('(' + double_to_str.str() + ')') : double_to_str.str();
+
+            out_row.push_back(out_str);
+            ++target_node_id;
         }
 
         inner_table.add_row(out_row);
+        ++source_node_id;
     }
 
     outer_table.add_row({inner_table});

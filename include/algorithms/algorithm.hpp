@@ -1,7 +1,10 @@
 #pragma once
 
 #include <array>
+#include <cctype>
 #include <functional>
+#include <optional>
+#include <ranges>
 #include <string>
 
 #include <algorithms/cpop.hpp>
@@ -40,6 +43,27 @@ std::string to_string(algorithm const algo) {
     }
 
     return s;
+}
+
+std::optional<algorithm> from_string(std::string const & s) {
+    auto lower = s | std::views::transform([] (unsigned char const c) {
+        return std::tolower(c);
+    });
+    std::string lower_s(lower.begin(), lower.end());
+
+    if (lower_s == "heft") {
+        return algorithm::HEFT;
+    } else if (lower_s == "cpop") {
+        return algorithm::CPOP;
+    } else if (lower_s == "rbca") {
+        return algorithm::RBCA;
+    } else if (lower_s == "dbca") {
+        return algorithm::DBCA;
+    } else {
+        return std::nullopt;
+    }
+
+    throw std::runtime_error("The selected algorithm is unknown or contains a typo.");
 }
 
 std::function<schedule::schedule()> to_function(

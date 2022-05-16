@@ -12,6 +12,8 @@ struct command_line_arguments {
 
     std::string task_to_node_assignment_input{};
 
+    std::string select_algorithm{};
+
     std::string output{};
     bool verbose{false};
 

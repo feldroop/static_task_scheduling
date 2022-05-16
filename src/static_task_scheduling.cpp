@@ -62,8 +62,15 @@ int main(int argc, char * argv[]) {
 
     io::handle_output_obj(args, w, c.best_performance());
 
-    for (auto const & algo : algorithms::ALL) {
-        algorithms::handle_execution(algo, args, c, w);
+    if (args.select_algorithm.empty()) {
+        for (auto const & algo : algorithms::ALL) {
+            algorithms::handle_execution(algo, args, c, w);
+        }
+    } else {
+        auto const algo_opt = algorithms::from_string(args.select_algorithm);
+        if (algo_opt) {
+            algorithms::handle_execution(algo_opt.value(), args, c, w);
+        }
     }
 
     if (!args.task_to_node_assignment_input.empty()) {

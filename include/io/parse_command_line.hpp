@@ -22,6 +22,9 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
     auto task_to_node_assignment_option = option("-a", "--assignment") 
         & value("assignment_file", args.task_to_node_assignment_input);
 
+    auto select_algorithm_option = option("-s", "--select-algorithm") 
+        & value("algorithm", args.select_algorithm);
+
     auto output_option = option("-o", "--output") & value("output_file", args.output);
     auto verbose_option = option("-v", "--verbose").set(args.verbose);
 
@@ -54,6 +57,11 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "It should contain exactly the fields task_number, node_number and is_assigned. "
         "*_number fields are 1-based while *_id fields are 0-based."
     );
+    std::string const select_algorithm_doc = (
+        "If this is given, only the selected algorithm is executed. "
+        "Must be one of: heft, cpop, rbca, dbca or none. "
+        "If 'none' is given, no algorithm is executed."
+    );
     std::string const output_doc = (
         "If given, the verbose output of this program is written to this file as plain text."
     );
@@ -69,8 +77,10 @@ std::optional<command_line_arguments> parse_command_line(int argc, char *argv[])
         "Input" % (
             cluster_option % cluster_doc,
             task_bags_option % task_bags_doc,
-            (topology_option % topology_doc) & (dependency_option % dependency_doc),
-            task_to_node_assignment_option % task_to_node_assignment_doc
+            topology_option % topology_doc,
+            dependency_option % dependency_doc,
+            task_to_node_assignment_option % task_to_node_assignment_doc,
+            select_algorithm_option % select_algorithm_doc
         ),
         "Output" % (
             output_option % output_doc,

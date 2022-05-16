@@ -114,3 +114,11 @@ OPTIONS
   ```
   ./static_task_scheduling -c cluster.csv -t task_bags.csv -d dependencies.csv -a assignment.csv
   ```
+* Only execute the HEFT algorithm with `-s`:
+  ```
+  ./static_task_scheduling -c cluster.csv -t task_bags.csv -d dependencies.csv -s heft
+  ```
+* Only create the schedule for a precomputed assignment with `-s` and `-a`:
+  ```
+  ./static_task_scheduling -c cluster.csv -t task_bags.csv -d dependencies.csv -a assignment.csv -s none
+  ```
