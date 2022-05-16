@@ -36,8 +36,8 @@ input workflow.
 ```
 SYNOPSIS
         static_task_scheduling -c <cluster_file> -t <tasks_file> [-p <topology>] [-d
-                               <dependencies_file>] [-a <assignment_file>] [-o <output_file>] [-v]
-                               [-m]
+                               <dependencies_file>] [-a <assignment_file>] [-s <algorithm>] [-o
+                               <output_file>] [-v] [-m]
 
 OPTIONS
         Input
@@ -68,6 +68,10 @@ OPTIONS
                     File in .csv format that describes an assignment of tasks to nodes. It should
                     contain exactly the fields task_number, node_number and is_assigned. *_number
                     fields are 1-based while *_id fields are 0-based.
+
+            -s, --select-algorithm <algorithm>
+                    If this is given, only the selected algorithm is executed. Must be one of: heft,
+                    cpop, rbca, dbca or none. If 'none' is given, no algorithm is executed.
 
         Output
             -o, --output <output_file>
