@@ -11,6 +11,8 @@
 namespace algorithms {
 
 struct task_group {
+    using iterator = std::vector<workflow::task_id>::iterator;
+
     std::vector<workflow::task_id> task_ids{};
     size_t cardinality{0};
     double workload{0.0};
@@ -19,6 +21,14 @@ struct task_group {
         task_ids.push_back(task.id);
         ++cardinality;
         workload += task.workload;
+    }
+
+    iterator begin() {
+        return task_ids.begin();
+    }
+
+    iterator end() {
+        return task_ids.begin();
     }
 };
 

@@ -1,7 +1,10 @@
 #pragma once
 
 #include <cmath>
+#include <functional>
 #include <iterator>
+#include <limits>
+#include <numeric>
 #include <ranges>
 #include <set>
 #include <stdexcept>
@@ -82,15 +85,6 @@ public:
     }
 };
 
-// workflow::task_id find_most_correlated_task(
-//     workflow::task_id const curr_t_id,
-//     std::set<workflow::task_id> const & remaining_task_ids,
-//     dependency_correlation_matrix const & cor
-// ) {
-//     // TODO
-//     return 0;
-// }
-
 std::vector<task_group> dependency_balanced_task_groups(
     workflow::workflow const & w,
     std::vector<workflow::task_id> const & bag, 
@@ -101,31 +95,88 @@ std::vector<task_group> dependency_balanced_task_groups(
 
     dependency_correlation_matrix const cor(w, bag);
 
-    auto const group_sizes = split_most_evenly(bag.size(), num_groups);
+    auto const required_group_sizes = split_most_evenly(bag.size(), num_groups);
     std::set<workflow::task_id> remaining_task_ids(bag.begin(), bag.end());
 
-    for (size_t i = 0; i < num_groups; ++i) {
-        size_t const group_size = group_sizes.at(i);
+    for (size_t const i : std::ranges::iota_view{0ul, num_groups}) {
+        size_t const required_group_size = required_group_sizes.at(i);
         task_group & group = groups.at(i);
 
-        if (group_size == 1) {
+        if (remaining_task_ids.empty()) {
+            throw std::runtime_error("Internal bug: DBCA task list empty too early.");
+        }
+
+        // initialize the group with the just a single task
+        // I removed the initialization from the paper with two tasks, 
+        // because I think the loop below does the exat same thing and 
+        // I don't have to implement the best task search twice
+        workflow::task_id const t_id = *remaining_task_ids.begin();
+        group.add_task(w.get_task(t_id));
+        remaining_task_ids.erase(t_id);
+
+        // I think in the paper pseudo code is a mistake and there is one loop too much
+        // hence I don't implement the second for-loop here
+
+        // keep adding tasks until the group has its required size
+        while (group.cardinality < required_group_size) {
             if (remaining_task_ids.empty()) {
                 throw std::runtime_error("Internal bug: DBCA task list empty too early.");
             }
 
-            workflow::task_id const t_id = *remaining_task_ids.begin();
-            group.add_task(w.get_task(t_id));
+            double max_added_correlation = std::numeric_limits<double>::lowest();
+            double min_workfload_difference = std::numeric_limits<double>::max();
+            workflow::task_id best_t_id = 0;
 
-            remaining_task_ids.erase(t_id);
-            continue;
+            double const average_group_workload = std::transform_reduce(
+                group.begin(), 
+                group.end(), 
+                0.0, 
+                std::plus<>(), 
+                [&w] (workflow::task_id const grouped_t_id) {
+                    return w.get_task(grouped_t_id).workload;
+                }
+            ) / group.cardinality;
+
+            // find the task with most added similarity out of the remaining free tasks
+            for (workflow::task_id const free_t_id : remaining_task_ids) {
+                double const added_correlation = std::transform_reduce(
+                    group.begin(), 
+                    group.end(), 
+                    0.0, 
+                    std::plus<>(), 
+                    [&cor, free_t_id] (workflow::task_id const grouped_t_id) {
+                        return cor.get(grouped_t_id, free_t_id);
+                    }
+                );
+
+                double const workload_difference = average_group_workload - w.get_task(free_t_id).workload;
+
+                if (
+                    added_correlation > max_added_correlation
+                    || (
+                        // tie-break correlation with workload similarity
+                        // the formula in the paper seems very weird or at least I don't understand it
+                        // so I implemented it in the way I assume it is meant from the textual description
+                        added_correlation == max_added_correlation 
+                        && workload_difference < min_workfload_difference 
+                    )
+                ) {
+                    max_added_correlation = added_correlation;
+                    min_workfload_difference = workload_difference;
+                    best_t_id = free_t_id;
+                }
+            }
+
+            group.add_task(w.get_task(best_t_id));
+            remaining_task_ids.erase(best_t_id);
         }
-
-        // TODO
     }
     
+    if (!remaining_task_ids.empty()) {
+        throw std::runtime_error("Internal bug: DBCA task list not empty in the end.");
+    }
 
-    // TODO
-    return {};
+    return groups;
 }
 
 // Dependency balance clustering algorithm
@@ -143,8 +194,6 @@ schedule::schedule dbca(
     if (args.use_memory_requirements) {
         io::issue_warning(args, "Memory requirements not implemented/used for DBCA");
     }
-
-    io::issue_warning(args, "DBCA not implemented yet");
 
     // we use our bags instead of the levels as defined in the original paper
     // (makes sense, but is not always equal)
