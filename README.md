@@ -15,9 +15,9 @@ robustness or any expected program behavior.
 
 ## Implemented algorithms
 
-* HEFT and CPOP
-* Modifications of the RBCA/DBCA algorithms
-* TDCA
+* HEFT and CPOP ([publication](https://ieeexplore.ieee.org/document/993206))
+* Modifications of the RBCA/DBCA algorithms ([publication](https://www.sciencedirect.com/science/article/abs/pii/S095070512030263X))
+* TDCA ([publication](https://ieeexplore.ieee.org/document/8399533))
 
 ## Setup
 
