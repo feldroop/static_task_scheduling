@@ -81,12 +81,12 @@ public:
     }
 
     // returns vertices without incoming edges ("independent vertices")
-    std::vector<vertex_id> get_independent_vertex_ids() const {
-        std::vector<vertex_id> independent_vertex_ids{};
+    std::unordered_set<vertex_id> get_independent_vertex_ids() const {
+        std::unordered_set<vertex_id> independent_vertex_ids{};
 
         for (vertex_id v_id = 0; v_id < vertices.size(); ++v_id) {
             if (incoming_edges.at(v_id).empty()) {
-                independent_vertex_ids.push_back(v_id);
+                independent_vertex_ids.insert(v_id);
             }
         }
 
@@ -97,7 +97,7 @@ public:
     // running time: linear in the number of edges
     std::optional<std::vector<vertex_id>> topological_order() const {
         std::vector<vertex_id> topological_order{};
-        std::vector<vertex_id> independent_vertex_ids = get_independent_vertex_ids();
+        std::unordered_set<vertex_id> independent_vertex_ids = get_independent_vertex_ids();
 
         // copy incoming edges to modify
         auto temp_incoming_edges = incoming_edges;
@@ -105,8 +105,8 @@ public:
         // keep on finding "independent" vertices without incoming edges
         // then extract them and delete their outgoing edges to make other vertices independent
         while (!independent_vertex_ids.empty()) {
-            vertex_id const curr_vertex_id = independent_vertex_ids.back();
-            independent_vertex_ids.pop_back();
+            vertex_id const curr_vertex_id = *independent_vertex_ids.begin();
+            independent_vertex_ids.erase(curr_vertex_id);
             topological_order.push_back(curr_vertex_id);
 
             for (auto const & [neighbor_id, weight] : outgoing_edges.at(curr_vertex_id)) {
@@ -116,7 +116,7 @@ public:
                 }
 
                 if (temp_incoming_edges.at(neighbor_id).empty()) {
-                    independent_vertex_ids.push_back(neighbor_id);
+                    independent_vertex_ids.insert(neighbor_id);
                 }
             }
         }

@@ -25,15 +25,29 @@ public:
     : nodes(std::move(nodes_)) 
     {}
 
-    std::vector<node_id> node_ids_sorted_by_performance_descending() const {
-        std::vector<node_id> node_ids(nodes.size());
-        std::iota(node_ids.begin(), node_ids.end(), 0);
+    std::vector<node_id> node_ids() const {
+        std::vector<node_id> ids(nodes.size());
+        std::iota(ids.begin(), ids.end(), 0);
 
-        std::ranges::sort(node_ids, std::ranges::greater(), [this] (node_id const & n_id) {
+        return ids;
+    }
+
+    std::vector<node_id> node_ids_sorted_by_performance_descending() const {
+        auto ids = node_ids();
+        std::ranges::sort(ids, std::ranges::greater(), [this] (node_id const & n_id) {
             return nodes.at(n_id).performance();
         });
 
-        return node_ids;
+        return ids;
+    }
+
+    std::vector<node_id> node_ids_sorted_by_performance_ascending() const {
+        auto ids = node_ids();
+        std::ranges::sort(ids, {}, [this] (node_id const & n_id) {
+            return nodes.at(n_id).performance();
+        });
+
+        return ids;
     }
 
     node_id best_performance_node(double const memory_requirement = 0.0) const {
@@ -44,6 +58,22 @@ public:
 
         // safe dereference because cluster size enforced to be > 0
         return std::ranges::max_element(
+            valid_nodes,
+            {},
+            [] (cluster_node const & node) {
+                return node.performance();
+            }
+        )->id;
+    }
+
+    node_id worst_performance_node(double const memory_requirement = 0.0) const {
+        auto valid_nodes = nodes 
+            | std::views::filter([memory_requirement] (cluster_node const & node) {
+                return node.memory >= memory_requirement;
+            });
+
+        // safe dereference because cluster size enforced to be > 0
+        return std::ranges::min_element(
             valid_nodes,
             {},
             [] (cluster_node const & node) {
@@ -75,6 +105,11 @@ public:
                 return node.performance();
             }
         )->performance();
+    }
+
+    // assumes that all bandwidth are equal (as of this writing this is always the case)
+    double uniform_bandwidth() const {
+        return nodes.front().network_bandwidth;
     }
 
     double mean_bandwidth() const {

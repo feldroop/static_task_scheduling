@@ -11,6 +11,7 @@
 #include <algorithms/dbca.hpp>
 #include <algorithms/heft.hpp>
 #include <algorithms/rbca.hpp>
+#include <algorithms/tdca.hpp>
 #include <cluster/cluster.hpp>
 #include <io/command_line_arguments.hpp>
 #include <schedule/schedule.hpp>
@@ -19,14 +20,15 @@
 namespace algorithms {
 
 enum class algorithm {
-    HEFT, CPOP, RBCA, DBCA
+    HEFT, CPOP, RBCA, DBCA, TDCA
 };
 
-std::array<algorithm, 4> constexpr ALL = {
+std::array<algorithm, 5> constexpr ALL = {
     algorithm::HEFT,
     algorithm::CPOP,
     algorithm::RBCA,
-    algorithm::DBCA
+    algorithm::DBCA,
+    algorithm::TDCA
 };
 
 std::string to_string(algorithm const algo) {
@@ -40,6 +42,10 @@ std::string to_string(algorithm const algo) {
         case algorithm::RBCA: s = "RBCA";
         break;
         case algorithm::DBCA: s = "DBCA";
+        break;
+        case algorithm::TDCA: s = "TDCA";
+        break;
+        default: throw std::runtime_error("Internal bug: unknown algorithm.");
     }
 
     return s;
@@ -59,7 +65,9 @@ std::optional<algorithm> from_string(std::string const & s) {
         return algorithm::RBCA;
     } else if (lower_s == "dbca") {
         return algorithm::DBCA;
-    } else {
+    } else if (lower_s == "tdca") {
+        return algorithm::TDCA;
+    } else if (lower_s == "none") {
         return std::nullopt;
     }
 
@@ -84,6 +92,9 @@ std::function<schedule::schedule()> to_function(
         };
         case algorithm::DBCA: return [&] () {
             return algorithms::dbca(c, w, args);
+        };
+        case algorithm::TDCA: return [&] () {
+            return algorithms::tdca(c, w, args);
         };
         default:
             throw std::runtime_error("Internal bug: unknown algorithm.");

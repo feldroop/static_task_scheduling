@@ -8,6 +8,7 @@
 #include <schedule/time_interval.hpp>
 #include <util/epsilon_compare.hpp>
 #include <util/timepoint.hpp>
+#include <workflow/task.hpp>
 #include <workflow/workflow.hpp>
 
 namespace schedule {
@@ -26,6 +27,28 @@ public:
 
     node_schedule(cluster::cluster_node const & node_) :
         node{node_} {}
+
+    node_schedule(node_schedule const & other) :
+        node{other.node} {
+            intervals = other.intervals;
+        }
+    
+    node_schedule(node_schedule && other) :
+        node{other.node} {
+            intervals = std::move(other.intervals);
+        }
+
+    node_schedule & operator=(node_schedule const & other) {
+        intervals = other.intervals;
+        // no change for the node reference needed
+        return *this;
+    }
+
+    node_schedule & operator=(node_schedule && other) {
+        intervals = std::move(other.intervals);
+        // no change for the node reference needed
+        return *this;
+    }
 
     // returns EFT and iterator before which the task could be scheduled
     time_slot compute_earliest_finish_time(
@@ -103,12 +126,25 @@ public:
         return intervals.empty() ? 0.0 : intervals.back().end;
     }
 
-    std::string to_string() const {
+    std::vector<scheduled_task_id> get_scheduled_task_ids() const {
+        std::vector<scheduled_task_id> scheduled_task_ids;
+
+        for (time_interval const & interval : intervals) {
+            scheduled_task_ids.push_back(interval.task_id);
+        }
+
+        return scheduled_task_ids;
+    }
+
+    std::string to_string(
+        std::unordered_map<scheduled_task_id, workflow::task_id> const & scheduled_to_original_task_id
+    ) const {
         std::stringstream out;
 
         out << "Node " << node.id << ':';
         for (time_interval const & interval : intervals) {
-            out << " (" << interval.task_id << ": " << interval.start
+            workflow::task_id const original_t_id = scheduled_to_original_task_id.at(interval.task_id);
+            out << " (" << original_t_id << ": " << interval.start
                 << " -> " << interval.end << ")";  
         }
 

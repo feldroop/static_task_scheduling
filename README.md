@@ -10,6 +10,9 @@
 
 Implementations of different static task scheduling algorithms to internally evaluate a proposed MILP based model for this problem.
 
+This is NOT intended for general purpose usage and there is no guarantee for
+robustness or any expected program behavior.
+
 ## Implemented algorithms
 
 * Original HEFT
